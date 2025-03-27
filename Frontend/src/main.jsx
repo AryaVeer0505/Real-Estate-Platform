@@ -19,14 +19,14 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
     <Navbar/>
     <Routes>
-      <Route to="/" element={<Home/>}/>
-      <Route to="/login" element={<Login/>}/>
-      <Route to="/register" element={<Register/>}/>
-      <Route to="/contact" element={<Contact/>}/>
-      <Route to="/listing" element={<Listing/>}/>
-      <Route to="/about" element={<About/>}/>
-      <Route to="/addProperty" element={<AddProperty/>}/>
-      <Route to="/property/:id" element={<Property/>}/>
+      <Route path="/" element={<Home/>}/>
+      <Route path="/login" element={<Login/>}/>
+      <Route path="/register" element={<Register/>}/>
+      <Route path="/contact" element={<Contact/>}/>
+      <Route path="/listing" element={<Listing/>}/>
+      <Route path="/about" element={<About/>}/>
+      <Route path="/addProperty" element={<AddProperty/>}/>
+      <Route path="/property/:id" element={<Property/>}/>
     </Routes>
     <Footer/>
     </BrowserRouter>
