@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { assets } from "../assets/assets";
+
 const properties = [
   { id: 1, img: assets.project_img_1, title: "Luxury Villa", location: "Los Angeles, CA", price: "$2,500,000" },
   { id: 2, img: assets.project_img_2, title: "Modern Apartment", location: "New York, NY", price: "$850,000" },

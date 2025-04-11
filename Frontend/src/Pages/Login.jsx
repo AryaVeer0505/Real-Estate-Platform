@@ -1,50 +1,63 @@
 import React, { useState } from 'react';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Checkbox, Form, Input, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
+import { useNavigate, useParams, NavLink } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import Loader from '../Components/Loader';
-import { baseURL } from '../../config';
-import axiosInstance from '../../axiosInnstance.js'
+import 'react-toastify/dist/ReactToastify.css';
+
+import Loader from '../Components/Loader.jsx';
+import { baseURL } from '../../config.js';
+import axiosInstance from '../../axiosInnstance.js';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { role } = useParams(); 
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
-    console.log('Data Submitted: ', values);
     setLoading(true);
+    const { email, password } = values;
 
     try {
-      const { email, password } = values;
-      const response = await axiosInstance.post(`${baseURL}/api/auth/login`, { email, password });
+      const response = await axiosInstance.post(`${baseURL}/api/auth/login`, {
+        email,
+        password,
+        role,
+      });
 
       if (response.data.success) {
         message.success(response.data.message);
         toast.success('Successfully Logged In', { position: 'top-center' });
 
-        if (response.data.payload) {
-          localStorage.setItem('username', response.data.payload.username || '');
-          localStorage.setItem('email', response.data.payload.email || '');
+        const { payload, token } = response.data;
+
+        if (payload) {
+          localStorage.setItem('user', JSON.stringify({
+            username: payload.username || '',
+            email: payload.email || '',
+            role: role,
+          }));
         }
-        
+
+        if (token) {
+          localStorage.setItem('token', token);
+        }
+        window.dispatchEvent(new Event('loginStatusChanged'));
 
         setTimeout(() => {
           navigate('/');
           setLoading(false);
         }, 3000);
-
-        console.log('Successfully logged in');
       } else {
         message.error(response.data.message);
         toast.error('Failed to login', { position: 'top-center' });
         setLoading(false);
       }
     } catch (error) {
-      console.log('Error message', error.response?.data || error.message);
-      message.error(error.response?.data?.message || 'Login failed');
-      toast.error(error.response?.data?.message || 'Login failed', { position: 'top-center' });
+      console.error('Login error:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.message || 'Login failed';
+      message.error(errorMsg);
+      toast.error(errorMsg, { position: 'top-center' });
       setLoading(false);
     }
   };
@@ -55,11 +68,21 @@ const Login = () => {
         <Loader />
       ) : (
         <div className="flex justify-center items-center h-screen bg-gray-100">
-          <div className="bg-white p-8 shadow-md rounded-lg w-full max-w-sm">
-            <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+          <div className="bg-white p-8 shadow-md rounded-lg w-full max-w-sm border border-green-400">
+            <h2 className="text-2xl font-bold text-center mb-6 capitalize">
+              Login as {role === 'owner' ? 'Property Owner' : 'User'}
+            </h2>
 
-            <Form name="login" initialValues={{ remember: true }} onFinish={onFinish} className="space-y-4">
-              <Form.Item name="email" rules={[{ required: true, message: 'Please input your email!' }]}>
+            <Form
+              name="login"
+              initialValues={{ remember: true }}
+              onFinish={onFinish}
+              className="space-y-4"
+            >
+              <Form.Item
+                name="email"
+                rules={[{ required: true, message: 'Please input your email!' }]}
+              >
                 <Input
                   prefix={<UserOutlined className="text-gray-500" />}
                   placeholder="Email"
@@ -67,10 +90,12 @@ const Login = () => {
                 />
               </Form.Item>
 
-              <Form.Item name="password" rules={[{ required: true, message: 'Please input your Password!' }]}>
-                <Input
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: 'Please input your Password!' }]}
+              >
+                <Input.Password
                   prefix={<LockOutlined className="text-gray-500" />}
-                  type="password"
                   placeholder="Password"
                   className="py-2 px-4 w-full border border-gray-300 rounded-md focus:border-green-500 focus:ring focus:ring-blue-200"
                 />
@@ -79,9 +104,9 @@ const Login = () => {
               <Form.Item>
                 <div className="flex justify-between items-center">
                   <Checkbox className="text-gray-600">Remember me</Checkbox>
-                  <a href="#" className="text-green-600 hover:underline">
+                  <NavLink to="/forgot-password" className="text-green-600 hover:underline">
                     Forgot password?
-                  </a>
+                  </NavLink>
                 </div>
               </Form.Item>
 
@@ -98,14 +123,18 @@ const Login = () => {
 
               <div className="text-center text-gray-600">
                 Don't have an account?
-                <NavLink to="/register" className="text-green-600 hover:underline ml-1">
-                  Register now!
+                <NavLink
+                  to={`/register/${role}`}
+                  className="text-green-600 hover:underline ml-1"
+                >
+                  Register as {role === 'owner' ? 'Owner' : 'User'}
                 </NavLink>
               </div>
             </Form>
           </div>
         </div>
       )}
+
       <ToastContainer />
     </div>
   );

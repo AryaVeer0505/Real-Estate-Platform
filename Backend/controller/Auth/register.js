@@ -2,15 +2,15 @@ const User = require("../../models/User.model");
 const { registrationValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-require('dotenv').config();
+require("dotenv").config();
 
 const register = async (req, res, next) => {
   try {
-
+   
     const registerValues = await registrationValidation.validateAsync(req.body);
     console.log("Registration data validated");
 
-    const { username, number, email, password, confirmPassword } = registerValues;
+    const { username, number, email, password, confirmPassword, role } = registerValues;
 
     const existingUser = await User.findOne({
       $or: [{ email }, { number }, { username }]
@@ -18,7 +18,7 @@ const register = async (req, res, next) => {
 
     if (existingUser) {
       if (existingUser.email === email) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
           message: "User with this email is already registered",
         });
@@ -44,6 +44,7 @@ const register = async (req, res, next) => {
       });
     }
 
+ 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
@@ -51,26 +52,28 @@ const register = async (req, res, next) => {
       number,
       email,
       password: hashedPassword,
+      role, 
     });
 
     await newUser.save();
     console.log("User registered successfully");
-    const secretKey = process.env.ACCESS_TOKEN_SECRET;
-    const jwToken = jwt.sign(
-      { id: newUser._id, username: newUser.username, email: newUser.email }, 
-      secretKey, 
-      { expiresIn: "1h" }
-    );
+
+   
+    const payload = {
+      id: newUser._id,
+      username: newUser.username,
+      email: newUser.email,
+      role: newUser.role,
+    };
+
+    const secretKey = process.env.ACCESS_TOKEN_SECRET || "fallbackSecretKey";
+    const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
 
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
-      user: {
-        username: newUser.username,
-        email: newUser.email,
-        number: newUser.number,
-      },
-      jwToken,
+      payload,
+      token, 
     });
 
   } catch (error) {
@@ -80,4 +83,3 @@ const register = async (req, res, next) => {
 };
 
 module.exports = register;
-

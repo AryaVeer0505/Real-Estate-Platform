@@ -6,7 +6,7 @@ const UserSchema = new Schema({
         required: true,
         trim: true
     },
-     number: {
+    number: {
         type: Number,
         required: true
     },
@@ -23,8 +23,11 @@ const UserSchema = new Schema({
         minlength: 3,
         maxlength: 100
     },
-   
-
+    role: {
+        type: String,
+        enum:['user','owner'],
+        default : "user"
+    }
 });
 
 module.exports = model("User", UserSchema, "users");
