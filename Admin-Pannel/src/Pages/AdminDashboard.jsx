@@ -22,7 +22,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await axios.get("http://localhost:5001/api/auth/users");
+        const usersRes = await axios.get("http://localhost:5001/api/auth/getUsers");
         setUsers(usersRes.data);
 
         const propertiesRes = await axios.get("http://localhost:5001/api/properties");
@@ -53,7 +53,7 @@ const AdminDashboard = () => {
           <div className="p-6 bg-white rounded shadow">
             <Row gutter={16}>
               <Col span={12}>
-                <Card title="Users" bordered={false}>
+                <Card title="Total Users" bordered={false}>
                   {users.length}
                 </Card>
               </Col>

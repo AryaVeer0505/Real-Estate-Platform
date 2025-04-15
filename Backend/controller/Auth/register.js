@@ -1,8 +1,7 @@
 const User = require("../../models/User.model");
 const { registrationValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+
 
 const register = async (req, res, next) => {
   try {
@@ -66,14 +65,13 @@ const register = async (req, res, next) => {
       role: newUser.role,
     };
 
-    const secretKey = process.env.ACCESS_TOKEN_SECRET || "fallbackSecretKey";
-    const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
+
 
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
       payload,
-      token, 
+  
     });
 
   } catch (error) {

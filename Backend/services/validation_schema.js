@@ -6,13 +6,13 @@ const registrationValidation = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
   confirmPassword: Joi.string().required(),
-  role: Joi.string().valid("user", "owner").required(),
+  role: Joi.string().valid("user", "owner","admin").required(),
 });
 
 const loginValidation = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  role: Joi.string().valid("user", "owner").required(), 
+  role: Joi.string().valid("user", "owner","admin").required(), 
 });
 
 const addUservalidation = Joi.object({
@@ -21,7 +21,7 @@ const addUservalidation = Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().required(),
     confirmPassword:Joi.string().required(),
-    role: Joi.string().valid('user', 'owner').required(),
+    role: Joi.string().valid('user', 'owner',"admin").required(),
 })
 
 module.exports = { registrationValidation, loginValidation,addUservalidation };

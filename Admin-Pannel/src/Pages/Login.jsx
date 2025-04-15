@@ -1,64 +1,133 @@
-import React from "react";
-import { Form, Input, Button, Card, Typography, message } from "antd";
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import React, { useState } from 'react';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Checkbox, Form, Input, message } from 'antd';
+import { useNavigate, useParams, NavLink } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const { Title } = Typography;
+import Loader from '../Components/Loader.jsx';
+import { baseURL } from '../../config.js';
+import axiosInstance from '../../axiosInnstance.js';
 
 const Login = () => {
-  const onFinish = (values) => {
-    console.log("Login attempt:", values);
-    message.success("Login successful!");
+  const navigate = useNavigate();
+  const { role } = useParams(); 
+  const [loading, setLoading] = useState(false);
+
+  const onFinish = async (values) => {
+    setLoading(true);
+    const { email, password,role } = values;
+  
+    try {
+      const response = await axiosInstance.post(`${baseURL}/api/auth/login`, {
+        email,
+        password,
+        role:'admin', 
+      });
+  
+      if (response.data.success) {
+        message.success(response.data.message);
+        toast.success('Successfully Logged In', { position: 'top-center' });
+  
+        const { payload, token } = response.data;
+  
+        if (payload) {
+          localStorage.setItem('user', JSON.stringify({
+            username: payload.username || '',
+            email: payload.email || '',
+            role: payload.role || '',
+          }));
+        }
+  
+        if (token) {
+          localStorage.setItem('token', token);
+        }
+  
+        window.dispatchEvent(new Event('loginStatusChanged'));
+  
+        setTimeout(() => {
+          navigate('/dashboard');
+          setLoading(false);
+        }, 3000);
+      } else {
+        message.error(response.data.message);
+        toast.error('Failed to login', { position: 'top-center' });
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
+      const errorMsg = error.response?.data?.message || 'Login failed';
+      message.error(errorMsg);
+      toast.error(errorMsg, { position: 'top-center' });
+      setLoading(false);
+    }
   };
-
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-full max-w-md shadow-lg">
-        <div className="text-center mb-6">
-          <Title level={3}>Admin Login</Title>
-        </div>
+    <div>
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className="flex justify-center items-center h-screen bg-gray-100">
+          <div className="bg-white p-8 shadow-md rounded-lg w-full max-w-sm border border-green-400">
+            <h2 className="text-2xl font-bold text-center mb-6 capitalize">
+              Admin Login
+            </h2>
 
-        <Form
-          name="login_form"
-          onFinish={onFinish}
-          layout="vertical"
-          initialValues={{ remember: true }}
-        >
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true, message: "Please input your email!" },
-              { type: "email", message: "Please enter a valid email!" },
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder="Enter your email"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            label="Password"
-            rules={[{ required: true, message: "Please input your password!" }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined className="site-form-item-icon" />}
-              placeholder="Enter your password"
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              className="bg-black w-full"
+            <Form
+              name="login"
+              initialValues={{ remember: true }}
+              onFinish={onFinish}
+              className="space-y-4"
             >
-              Login
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+              <Form.Item
+                name="email"
+                rules={[{ required: true, message: 'Please input your email!' }]}
+              >
+                <Input
+                  prefix={<UserOutlined className="text-gray-500" />}
+                  placeholder="Email"
+                  className="py-2 px-4 w-full border border-gray-300 rounded-md focus:border-green-500 focus:ring focus:ring-blue-200"
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: 'Please input your Password!' }]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined className="text-gray-500" />}
+                  placeholder="Password"
+                  className="py-2 px-4 w-full border border-gray-300 rounded-md focus:border-green-500 focus:ring focus:ring-blue-200"
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <div className="flex justify-between items-center">
+                  <Checkbox className="text-gray-600">Remember me</Checkbox>
+                  <NavLink to="/forgot-password" className="text-green-600 hover:underline">
+                    Forgot password?
+                  </NavLink>
+                </div>
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  block
+                  type="primary"
+                  htmlType="submit"
+                  className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md w-full transition"
+                >
+                  Log in
+                </Button>
+              </Form.Item>
+
+            </Form>
+          </div>
+        </div>
+      )}
+
+      <ToastContainer />
     </div>
   );
 };

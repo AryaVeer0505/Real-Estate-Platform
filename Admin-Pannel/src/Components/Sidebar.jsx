@@ -46,7 +46,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         selectedKeys={getSelectedKeys()} 
       >
         <Menu.Item key="1" icon={<DashboardOutlined />}>
-          <NavLink to="/">Dashboard</NavLink>
+          <NavLink to="/dashboard">Dashboard</NavLink>
         </Menu.Item>
         <Menu.Item key="2" icon={<UserOutlined />}>
           <NavLink to="/dashboard/users">Users</NavLink>
