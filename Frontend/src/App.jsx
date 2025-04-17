@@ -11,7 +11,7 @@ import Property from './Pages/Property.jsx';
 import Profile from './Pages/Profile.jsx';
 import AddProperty from './Pages/AddProperty.jsx';
 import NotFound from './Components/NotFound.jsx';
-
+import OwnerDashboard from './Pages/OwnerDashboard.jsx';
 const App = () => {
   const location = useLocation();
   const isNotFound = location.pathname === '*' || location.pathname === '/404';
@@ -30,6 +30,7 @@ const App = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/login/:role" element={<Login />} />
         <Route path="/register/:role" element={<Register />} />
+        <Route path='/ownerDashboard' element={<OwnerDashboard/>}/>
         <Route path="*" element={<NotFound />} />
       </Routes>
 

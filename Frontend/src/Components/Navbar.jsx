@@ -10,8 +10,16 @@ const LoginDropdown = () => (
   </div>
 );
 
-const UserDropdown = ({ onLogout }) => (
+const UserDropdown = ({ onLogout, userRole }) => (
   <div className="absolute right-0 mt-2 bg-white text-black rounded shadow-md w-48 z-50">
+    {userRole === 'owner' && (
+      <NavLink
+        to="/ownerDashboard"
+        className="block px-4 py-2 hover:bg-gray-200 font-medium"
+      >
+        Dashboard
+      </NavLink>
+    )}
     <NavLink to="/profile" className="block px-4 py-2 hover:bg-gray-200 font-medium">My Profile</NavLink>
     <button onClick={onLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-200 font-medium">Logout</button>
   </div>
@@ -26,7 +34,7 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
 
   const user = JSON.parse(localStorage.getItem('user'));
-  const username = user?.username || 'User';
+  const userRole = user?.role;
 
   useEffect(() => {
     setIsMenuOpen(false);
@@ -52,14 +60,8 @@ const Navbar = () => {
     return () => window.removeEventListener('loginStatusChanged', updateLoginStatus);
   }, []);
 
-  // 🔒 Prevent scroll when mobile menu is open
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-
+    document.body.style.overflow = isMenuOpen ? 'hidden' : 'auto';
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -73,6 +75,7 @@ const Navbar = () => {
     localStorage.removeItem('role');
     localStorage.removeItem('username');
     localStorage.removeItem('email');
+    localStorage.removeItem('user');
 
     setIsLoggedIn(false);
     window.dispatchEvent(new Event('loginStatusChanged'));
@@ -111,14 +114,18 @@ const Navbar = () => {
         <li className="block md:hidden relative dropdown-container">
           {isLoggedIn ? (
             <button onClick={toggleDropdown} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
-              <UserOutlined /> 
+              <UserOutlined />
             </button>
           ) : (
             <button onClick={toggleDropdown} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
               Login
             </button>
           )}
-          {isDropdownOpen && (isLoggedIn ? <UserDropdown onLogout={handleLogout} /> : <LoginDropdown />)}
+          {isDropdownOpen && (
+            isLoggedIn
+              ? <UserDropdown onLogout={handleLogout} userRole={userRole} />
+              : <LoginDropdown />
+          )}
         </li>
       </ul>
 
@@ -132,7 +139,11 @@ const Navbar = () => {
             Login
           </button>
         )}
-        {isDropdownOpen && (isLoggedIn ? <UserDropdown onLogout={handleLogout} /> : <LoginDropdown />)}
+        {isDropdownOpen && (
+          isLoggedIn
+            ? <UserDropdown onLogout={handleLogout} userRole={userRole} />
+            : <LoginDropdown />
+        )}
       </div>
     </nav>
   );
