@@ -3,10 +3,10 @@ const bcrypt=require("bcryptjs")
 const createDefaultAdmin = async () => {
   const existingAdmin = await User.findOne({ role: "admin" });
   if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash("admin123", 10);
+    const hashedPassword = await bcrypt.hash("akay123", 10);
     const newAdmin = new User({
       username: "admin",
-      email: "admin@example.com",
+      email: "aryaveerkanwar11458@.com",
       number:"12121212",
       password: hashedPassword,
       role: "admin",

@@ -6,7 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import Loader from '../Components/Loader.jsx';
-import { baseURL } from '../../config.js';
+import { base_URL } from '../../config.js';
 import axiosInstance from '../../axiosInnstance.js';
 
 const Login = () => {
@@ -19,7 +19,7 @@ const Login = () => {
     const { email, password } = values;
 
     try {
-      const response = await axiosInstance.post(`${baseURL}/api/auth/login`, {
+      const response = await axiosInstance.post(`${base_URL}/api/auth/login`, {
         email,
         password,
         role,

@@ -27,10 +27,10 @@ const Newsletter = () => {
             <FiMail className="text-green-600 text-3xl" />
           </div>
         </div>
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
           Stay in the Loop
         </h2>
-        <p className="text-gray-500 mb-6">
+        <p className="text-gray-500 mb-6 text-center">
           Get property updates, market trends & exclusive listings in your inbox.
         </p>
 
