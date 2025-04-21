@@ -11,12 +11,11 @@ import axiosInstance from '../../axiosInnstance.js';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { role } = useParams(); 
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
-    const { email, password,role } = values;
+    const { email, password } = values;
   
     try {
       const response = await axiosInstance.post(`${baseURL}/api/auth/login`, {
@@ -29,21 +28,14 @@ const Login = () => {
         message.success(response.data.message);
         toast.success('Successfully Logged In', { position: 'top-center' });
   
-        const { payload, token } = response.data;
-  
-        if (payload) {
-          localStorage.setItem('user', JSON.stringify({
-            username: payload.username || '',
-            email: payload.email || '',
-            role: payload.role || '',
-          }));
+        if (response.data.payload) {
+          localStorage.setItem("email", response.data.payload.email);
+          localStorage.setItem("role", response.data.payload.role);
+          localStorage.setItem("username", response.data.payload.username);
+          localStorage.setItem("token", response.data.token);
         }
-  
-        if (token) {
-          localStorage.setItem('token', token);
-        }
-  
-        window.dispatchEvent(new Event('loginStatusChanged'));
+        console.log("Token saved:", response.data.token);
+
   
         setTimeout(() => {
           navigate('/dashboard');

@@ -1,5 +1,5 @@
 import axios from 'axios'
-const instance=axios.create({
+const axiosInstance=axios.create({
     baseURL:"http://localhost:5001",
     timeout:1000,
 })
@@ -8,22 +8,31 @@ const instance=axios.create({
 // interceptor is a feature in axios used to modify the requests and responses 
 // it works like an middleware, means it executes before and after every responses and requests 
 
-instance.interceptors.request.use(
-    async(config)=>{
-        try{
-        const token=localStorage.getItem('token')
-        config.headers.Authorization=`Bearer ${token}`
-        return config
-        }
-        catch(error){
-            console.log(error)
-        }
+
+axiosInstance.interceptors.request.use(
+    (config) => {
+      const token = localStorage.getItem('token');
+      console.log("📦 Token from localStorage:", token); // Debug
+  
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+        console.log("✅ Auth header set:", config.headers['Authorization']);
+      } else {
+        console.warn("⚠️ No token found in localStorage.");
+      }
+  
+      return config;
+    },
+    (error) => {
+      console.error("❌ Axios request error:", error);
+      return Promise.reject(error);
     }
-)
+  );
+  
 
 // Response Interceptor 
 
-instance.interceptors.response.use(
+axiosInstance.interceptors.response.use(
     (response)=>{
         console.log("Response data:",response.data)
         return response
@@ -32,4 +41,4 @@ instance.interceptors.response.use(
         console.log("response error:",error)
     }
 )
-export default instance
+export default axiosInstance

@@ -1,8 +1,9 @@
+require("dotenv").config();
 const User = require("../../models/User.model");
 const { loginValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const {generateToken}=require("../../middlewares/checkAuth.js")
+
 
 const login = async (req, res, next) => {
   try {
@@ -34,20 +35,21 @@ const login = async (req, res, next) => {
     }
 
     const payload = {
-      id: existingUser._id,
       username: existingUser.username,
       email: existingUser.email,
-      role: existingUser.role,
     };
 
-    const secretKey = process.env.ACCESS_TOKEN_SECRET || "fallbackSecretKey";
-    const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
-
+    const secretKey=process.env.ACCESS_SECRET_KEY
+    const token = generateToken(payload,secretKey);
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      payload,
-      token,
+      payload: { 
+        username: existingUser.username, 
+        email: existingUser.email,
+        role: existingUser.role
+      },
+      token:token,
     });
 
   } catch (error) {

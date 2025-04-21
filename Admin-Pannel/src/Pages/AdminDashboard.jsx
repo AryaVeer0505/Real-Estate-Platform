@@ -11,6 +11,8 @@ import axios from "axios";
 
 import Sidebar from "../Components/Sidebar";
 import Header from "../Components/Header"; 
+import { baseURL } from "../../config";
+import axiosInstance from "../../axiosInnstance";
 
 const { Content, Footer } = Layout;
 
@@ -22,10 +24,10 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const usersRes = await axios.get("http://localhost:5001/api/auth/getUsers");
+        const usersRes = await axiosInstance.get(`${baseURL}/api/auth/getUsers`);
         setUsers(usersRes.data);
 
-        const propertiesRes = await axios.get("http://localhost:5001/api/properties");
+        const propertiesRes = await axiosInstance.get(`${baseURL}/api/properties`);
         setProperties(propertiesRes.data);
       } catch (error) {
         console.error("Failed to fetch data", error);

@@ -10,11 +10,12 @@ import {
   Tag,
   Popconfirm,
 } from "antd";
-import axios from "axios";
 import { Layout, Row, Col, Card } from "antd";
 import Header from "../Components/Header";
 import Sidebar from "../Components/Sidebar";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { baseURL } from "../../config";
+import axiosInstance from "../../axiosInnstance";
 
 const { Option } = Select;
 const { Content, Footer } = Layout;
@@ -34,7 +35,7 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get("http://localhost:5001/api/auth/getUsers");
+      const res = await axiosInstance.get(`${baseURL}/api/auth/getUsers`);
       setUsers(res.data || []);
     } catch (error) {
       console.error("Failed to fetch users", error);
@@ -62,7 +63,7 @@ const Users = () => {
 
   const handleAddUser = async (values) => {
     try {
-      await axios.post("http://localhost:5001/api/auth/addUser", values);
+      await axiosInstance.post(`${baseURL}/api/auth/addUser`, values);
       message.success("User added successfully!");
       setIsModalVisible(false);
       form.resetFields();
@@ -75,8 +76,8 @@ const Users = () => {
 
   const handleUpdateUser = async (values) => {
     try {
-      await axios.put(
-        `http://localhost:5001/api/auth/updateUser/${editingUser._id}`,
+      await axiosInstance.put(
+        `${baseURL}/api/auth/updateUser/${editingUser._id}`,
         values
       );
       message.success("User updated successfully!");
@@ -90,7 +91,7 @@ const Users = () => {
 
   const handleDelete = async (userId) => {
     try {
-      await axios.delete(`http://localhost:5001/api/auth/deleteUser/${userId}`);
+      await axiosInstance.delete(`${baseURL}/api/auth/deleteUser/${userId}`);
       message.success("User deleted successfully!");
       fetchUsers();
     } catch (error) {
