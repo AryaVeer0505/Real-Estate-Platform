@@ -2,27 +2,29 @@ const Favorite = require('../../models/favorite.model');
 
 const RemoveFromFavorites = async (req, res) => {
   try {
-    const { propertyId } = req.body;
-    const userId = req.user.id;
+    const propertyId = req.params.propertyId;  // <-- change here
+    const userId = req.user._id;
 
-    if (!userId) {
-      return res.status(400).json({ message: 'User is not authenticated' });
+    if (!propertyId) {
+      return res.status(400).json({ message: 'Property ID is required.' });
     }
 
-    const existingFavorite = await Favorite.findOne({ userId, propertyId });
+    const deletedFavorite = await Favorite.findOneAndDelete({ userId, propertyId });
 
-    if (!existingFavorite) {
+    if (!deletedFavorite) {
+      console.warn(`User ${userId} attempted to remove non-existent favorite ${propertyId}`);
       return res.status(404).json({ message: 'Property is not in your favorites' });
     }
 
-    await Favorite.findOneAndDelete({ userId, propertyId });
+    console.info(`User ${userId} removed property ${propertyId} from favorites`);
 
     return res.status(200).json({ message: 'Property removed from favorites' });
 
   } catch (error) {
-    console.error('Error removing property from favorites:', error);
+    console.error(`Error removing property ${propertyId} from favorites for user ${userId}:`, error);
     return res.status(500).json({ message: 'An error occurred while removing the property from favorites' });
   }
+
 };
 
 module.exports = RemoveFromFavorites;

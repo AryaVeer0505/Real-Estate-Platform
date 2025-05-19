@@ -68,7 +68,7 @@ const Property = () => {
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-screen-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-        <div className="relative w-full h-[500px] md:h-full">
+        <div className="relative w-full h-[400px] md:h-[500px] ">
           <img
             src={
               property.images && property.images.length > 0
@@ -76,7 +76,7 @@ const Property = () => {
                 : "/default-property.jpg"
             }
             alt="Property"
-            className="w-full h-full object-cover transition duration-300 ease-in-out"
+            className="w-full h-full object-cover transition duration-300 ease-in-out rounded-lg"
           />
 
           {property.images?.length > 1 && (

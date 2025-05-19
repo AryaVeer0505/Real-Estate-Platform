@@ -5,26 +5,24 @@ const getFavorites = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Check if userId is valid (in case checkAuth fails)
-    if (!userId) {
-      return res.status(400).json({ message: 'User is not authenticated' });
-    }
-
-    // Fetch the user's favorites and populate the associated property details
     const favorites = await Favorite.find({ userId }).populate('propertyId');
 
-    if (favorites.length === 0) {
+    if (!favorites.length) {
+      console.warn(`No favorites found for user ${userId}`);
       return res.status(404).json({ message: 'No favorites found for this user' });
     }
 
-    // Return the favorite properties
-    res.status(200).json({
-      favorites: favorites.map(fav => fav.propertyId), 
+    const favoriteProperties = favorites.map(fav => fav.propertyId);
+
+    return res.status(200).json({
+      message: 'Favorites fetched successfully',
+      count: favoriteProperties.length,
+      favorites: favoriteProperties,
     });
 
   } catch (error) {
-    console.error('Error fetching favorites:', error);
-    res.status(500).json({ message: 'An error occurred while fetching favorites' });
+    console.error(`Error fetching favorites for user ${req.user._id}:`, error);
+    return res.status(500).json({ message: 'An error occurred while fetching favorites' });
   }
 };
 

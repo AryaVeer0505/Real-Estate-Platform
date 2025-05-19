@@ -1,12 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-
-
+import axiosInstance from '../../axiosInnstance.js'
+import { baseURL } from '../../config.js';
 import Newsletter from '../Components/NewsLetter';
 import { assets } from '../assets/assets';
 
 const Home = () => {
   // const [mode, setMode] = useState('buy');
+     const [latestProperties, setLatestProperties] = useState([]);
+
+  useEffect(() => {
+    const fetchLatestProperties = async () => {
+      try {
+        const response = await axiosInstance.get(`${baseURL}/api/property/allProperties`);
+        if (response.status === 200) {
+          setLatestProperties(response.data.properties.slice(0, 3));
+        }
+      } catch (error) {
+        console.error("Error fetching latest properties:", error);
+      }
+    };
+
+    fetchLatestProperties();
+  }, []);
+
 
   return (
     <div className="w-full font-sans">
@@ -111,21 +128,17 @@ const Home = () => {
 
 
       <div className="py-12 px-6 text-center bg-gray-100">
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">Featured Properties</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">Latest Properties</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {[
-            { img: assets.project_img_1, title: "Luxury Villa", location: "Los Angeles, CA", price: "$2,500,000" },
-            { img: assets.project_img_2, title: "Modern Apartment", location: "New York, NY", price: "$850,000" },
-            { img: assets.project_img_3, title: "Cozy Family Home", location: "Miami, FL", price: "$650,000" }
-          ].map((property, index) => (
+          {latestProperties.map((property, index) => (
             <div key={index} className="bg-white shadow-lg rounded-lg overflow-hidden transition transform hover:scale-105 hover:shadow-xl">
-              <img src={property.img} alt={property.title} className="w-full h-60 object-cover rounded-t-lg" />
+              <img src={property.images?.[0] ? `${baseURL}${property.images[0]}` : "/default-property.jpg"} alt={property.title} className="w-full h-60 object-cover rounded-t-lg" />
               <div className="p-5 flex flex-col items-center">
                 <h3 className="text-xl font-semibold">{property.title}</h3>
                 <p className="text-gray-600">{property.location}</p>
-                <p className="text-green-500 font-bold text-lg">{property.price}</p>
+                <p className="text-green-500 font-bold text-lg">₹{property.price}</p>
                 <NavLink
-                  to="/listing"
+                  to={`/property/${property._id}`}
                   className="mt-4 inline-block bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold transition hover:bg-green-600"
                 >
                   View Details
