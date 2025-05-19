@@ -1,12 +1,12 @@
 import React from 'react';
-import { assets } from '../assets/assets';
+import homeImg from '../assets/home.png';
 import Newsletter from '../Components/NewsLetter';
 
 const About = () => {
   return (
     <div className="bg-white text-gray-800">
     
-      <section className="bg-gradient-to-r from-green-50 via-white to-green-100 py-20 px-6">
+      <section className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h1 className="text-5xl font-bold text-green-600 mb-6">About Dream Estates</h1>
@@ -18,13 +18,13 @@ const About = () => {
             </p>
           </div>
           <div>
-            <img src={assets.home_img} alt="Dream Estates" className="rounded-xl shadow-xl w-full" />
+            <img src={homeImg} alt="Dream Estates" className="rounded-xl shadow-xl w-full" />
           </div>
         </div>
       </section>
 
     
-      <section className="py-16 bg-green-50">
+      <section className="py-16 bg-green-100">
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
           <div>
             <h2 className="text-4xl font-bold text-green-600">1,200+</h2>

@@ -69,7 +69,7 @@ const Contact = () => {
                 Prefer direct contact? Email us at <span className="font-semibold">support@yourrealestate.com</span>
               </p>
             </div>
-            <div className="flex-1 w-full">
+            <div className="flex-1 w-full shadow-2xl">
               <Card
                 bordered={false}
                 className="w-full shadow-lg p-6 bg-white rounded-xl"

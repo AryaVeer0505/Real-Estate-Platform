@@ -4,18 +4,21 @@ const uploadFile = (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       return res.status(400).json({
-         message: err.message 
-        });
+        message: err.message,
+      });
     }
 
-    if (!req.file) {
-      return res.status(400).json({ 
-        message: 'No file uploaded' 
-      });}
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        message: 'No files uploaded',
+      });
+    }
+
+    const fileUrls = req.files.map((file) => `/upload/${file.filename}`);
 
     res.status(200).json({
-      message: 'File uploaded successfully!',
-      file: req.file,
+      message: 'Files uploaded successfully!',
+      fileUrls,
     });
   });
 };

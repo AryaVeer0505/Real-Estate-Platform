@@ -1,12 +1,39 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { DatePicker, Button, message } from "antd";
+import { DatePicker, Button, message, Divider } from "antd";
 import dayjs from "dayjs";
-import { assets } from "../assets/assets";
+import axiosInstance from "../../axiosInnstance";
+import { baseURL } from "../../config";
+import Loader from "../Components/Loader";
 
 const Property = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
+  const [property, setProperty] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [appointmentDate, setAppointmentDate] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchProperty = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get(`${baseURL}/api/property/${id}`);
+        if (response.status === 200) {
+          setProperty(response.data.property);
+        } else {
+          message.error("Failed to load property details.");
+        }
+      } catch (error) {
+        console.error("Error fetching property:", error);
+        message.error("An error occurred while fetching property.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
+  }, [id]);
 
   const handleBooking = () => {
     if (!appointmentDate) {
@@ -18,71 +45,140 @@ const Property = () => {
     setAppointmentDate(null);
   };
 
+  const handleImageChange = (index) => {
+    setCurrentImageIndex(index);
+  };
+
+  const nextImage = () => {
+    if (property.images?.length > 1) {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % property.images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (property.images?.length > 1) {
+      setCurrentImageIndex(
+        (prevIndex) => (prevIndex - 1 + property.images.length) % property.images.length
+      );
+    }
+  };
+
+  if (loading || !property) return <Loader />;
+
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
-      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
-  
-        <div className="w-full h-[500px] md:h-auto">
+      <div className="max-w-screen-xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+        <div className="relative w-full h-[500px] md:h-full">
           <img
-            src={assets.project_img_1}
+            src={
+              property.images && property.images.length > 0
+                ? `${baseURL}${property.images[currentImageIndex]}`
+                : "/default-property.jpg"
+            }
             alt="Property"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition duration-300 ease-in-out"
           />
-        </div>
 
-        
-        <div className="p-8 flex flex-col justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2 text-green-600">Luxury Oceanview Villa</h1>
-            <p className="text-gray-600 text-sm mb-1">🏙️ Location: Los Angeles, CA</p>
-            <p className="text-green-500 font-semibold text-lg mb-3">💵 $2,500,000</p>
-
-            <p className="text-gray-700 mb-6">
-              This luxury villa boasts a panoramic ocean view, 5 spacious bedrooms, 4 bathrooms, an infinity pool, a modern kitchen, and a private garden. Located in a serene neighborhood just minutes from downtown LA, it's perfect for peaceful yet luxurious living.
-            </p>
-
-         
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">🏡 Features & Amenities:</h3>
-              <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
-                <li>5 Bedrooms & 4 Bathrooms</li>
-                <li>Infinity Pool & Jacuzzi</li>
-                <li>Smart Home System</li>
-                <li>2-Car Garage</li>
-                <li>Private Garden</li>
-                <li>Security System</li>
-              </ul>
-            </div>
-          </div>
-
-    
-          <div className="mt-4">
-            <h4 className="text-md font-semibold mb-2">📅 Book an Appointment</h4>
-            <div className="flex flex-wrap gap-3 items-center">
-              <DatePicker
-                value={appointmentDate}
-                onChange={(date) => setAppointmentDate(date)}
-                placeholder="Select Date"
-                className="border border-gray-300 rounded-md px-3 py-2"
-              />
-              <Button
-                type="primary"
-                className="bg-green-500 hover:bg-green-600 text-white"
-                onClick={handleBooking}
+          {property.images?.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute top-1/2 left-3 transform -translate-y-1/2 bg-white text-green-600 p-3 rounded-full shadow-lg"
               >
-                Book Now
-              </Button>
+                &lt;
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 bg-white text-green-600 p-3 rounded-full shadow-lg"
+              >
+                &gt;
+              </button>
+            </>
+          )}
+
+          {property.images?.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {property.images.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-3 h-3 rounded-full ${
+                    currentImageIndex === index ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                  onClick={() => handleImageChange(index)}
+                />
+              ))}
             </div>
-          </div>
+          )}
         </div>
-      </div>
 
+       {/* DETAILS SECTION */}
+<div className="p-8 md:p-12 space-y-6">
+  <h1 className="text-4xl font-bold text-green-600 text-center md:text-left">{property.title}</h1>
+  <div className="space-y-6 md:space-y-8">
+    {/* Property Details */}
+    <div className="space-y-2">
+      <p className="text-gray-700 text-lg">🏙️ <strong>Location:</strong> {property.location}</p>
+      <p className="text-green-600 text-2xl font-semibold">💵 ${property.price}</p>
+      <p className="text-gray-700 text-md">🏷️ <strong>Type:</strong> {property.type}</p>
+      <p className="text-gray-700">{property.description}</p>
+    </div>
 
-      <div className="max-w-7xl mx-auto mt-12 bg-white p-6 rounded-xl shadow-lg">
-        <h2 className="text-xl font-semibold mb-3 text-gray-800">📞 Contact the Property Owner</h2>
-        <p className="text-sm text-gray-600 mb-2">Name: John Doe</p>
-        <p className="text-sm text-gray-600 mb-2">Phone: +1 234 567 890</p>
-        <p className="text-sm text-gray-600">Email: john.doe@example.com</p>
+    {/* Divider */}
+    <Divider />
+
+    {/* Property Features */}
+    {property.features?.length > 0 && (
+      <>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">🔑 Key Features</h3>
+          <ul className="list-inside list-disc space-y-1">
+            {property.features.map((feature, index) => (
+              <li key={index} className="text-gray-600">{feature}</li>
+            ))}
+          </ul>
+        </div>
+        <Divider />
+      </>
+    )}
+
+    {/* Property Amenities */}
+    {property.amenities?.length > 0 && (
+      <>
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">🏡 Amenities</h3>
+          <ul className="grid grid-cols-2 gap-2 md:grid-cols-3">
+            {property.amenities.map((amenity, index) => (
+              <li key={index} className="flex items-center gap-2 text-gray-600">
+                <span>✔️</span> {amenity}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <Divider />
+      </>
+    )}
+
+    {/* APPOINTMENT SECTION */}
+    <div className="bg-gray-50 p-6 rounded-lg shadow-inner mt-6">
+      <h2 className="text-xl font-semibold mb-4 text-gray-800">📅 Book an Appointment</h2>
+      <DatePicker
+        value={appointmentDate}
+        onChange={(date) => setAppointmentDate(date)}
+        placeholder="Select Date"
+        className="w-full mb-4 border border-gray-300 rounded px-3 py-2"
+      />
+      <Button
+        type="primary"
+        block
+        className="bg-green-500 hover:bg-green-600 text-white"
+        onClick={handleBooking}
+      >
+        Book Now
+      </Button>
+    </div>
+  </div>
+</div>
+
       </div>
     </div>
   );

@@ -1,67 +1,125 @@
-import React, { useState } from 'react';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Checkbox, Form, Input, message } from 'antd';
-import { useNavigate, useParams, NavLink } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
-import Loader from '../Components/Loader.jsx';
-import { base_URL } from '../../config.js';
-import axiosInstance from '../../axiosInnstance.js';
-
+import React, { useState } from "react";
+import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Checkbox, Form, Input, message } from "antd";
+import { useNavigate, useParams, NavLink } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Loader from "../Components/Loader.jsx";
+import { baseURL } from "../../config.js";
+import axiosInstance from "../../axiosInnstance.js"; 
+import axios from "axios";
+import { useGoogleLogin } from '@react-oauth/google';
 const Login = () => {
   const navigate = useNavigate();
-  const { role } = useParams(); 
+  const { role } = useParams();
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
     setLoading(true);
     const { email, password } = values;
-
+  
     try {
-      const response = await axiosInstance.post(`${base_URL}/api/auth/login`, {
+      const response = await axiosInstance.post(`${baseURL}/api/auth/login`, {
         email,
         password,
         role,
       });
-
+    
       if (response.data.success) {
         message.success(response.data.message);
-        toast.success('Successfully Logged In', { position: 'top-center' });
+        toast.success("Successfully Logged In", { position: "top-center" });
 
         const { payload, token } = response.data;
 
-        if (payload) {
-          localStorage.setItem('user', JSON.stringify({
-            username: payload.username || '',
-            email: payload.email || '',
-            role: role,
-          }));
-        }
+   if (payload) {
+  const userRole = payload.role ? payload.role.trim().toLowerCase() : "user";
+
+  localStorage.setItem(
+    "user",
+    JSON.stringify({
+      username: payload.username || "",
+      email: payload.email || "",
+      role: userRole,
+    })
+  );
+
+  localStorage.setItem("userType", userRole);
+}
+
 
         if (token) {
-          localStorage.setItem('token', token);
+          localStorage.setItem("token", token);
         }
-        window.dispatchEvent(new Event('loginStatusChanged'));
+
+        window.dispatchEvent(new Event("loginStatusChanged"));
 
         setTimeout(() => {
-          navigate('/');
+          navigate("/");
           setLoading(false);
         }, 3000);
       } else {
         message.error(response.data.message);
-        toast.error('Failed to login', { position: 'top-center' });
+        toast.error("Failed to login", { position: "top-center" });
         setLoading(false);
       }
     } catch (error) {
-      console.error('Login error:', error.response?.data || error.message);
-      const errorMsg = error.response?.data?.message || 'Login failed';
+      console.error("Login error:", error.response?.data || error.message);
+      const errorMsg = error.response?.data?.message || "Login failed";
       message.error(errorMsg);
-      toast.error(errorMsg, { position: 'top-center' });
+      toast.error(errorMsg, { position: "top-center" });
       setLoading(false);
     }
   };
 
+const responseGoogle = async (authResult) => {
+  setLoading(true);
+  try {
+    if (authResult.code) {
+      // Pass the role parameter along with the code
+      const payload = { code: authResult.code, role };
+
+      const res = await axios.post("http://localhost:5001/api/auth/google", payload);
+      const { user, isNewUser } = res.data;
+
+      const { email, name, image, token, role: userRole } = user;
+
+      const userInfo = {
+        email,
+        name,
+        role: userRole,
+        image,
+      };
+
+      localStorage.setItem("user", JSON.stringify(userInfo));
+      localStorage.setItem("token", token);
+      localStorage.setItem("userType", userRole); // Update the userType key
+
+      window.dispatchEvent(new Event("loginStatusChanged"));
+
+      const successMessage = isNewUser 
+        ? "Registration Successful!" 
+        : "Login Successful!";
+
+      toast.success(successMessage, { position: "top-center" });
+      setTimeout(() => navigate(`/`), 2000);
+    } else {
+      throw new Error("Google authentication failed");
+    }
+  } catch (error) {
+    console.error("Error during Google authentication:", error.message);
+    toast.error("Failed to login", { position: "top-center" });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  
+  const googleLogin = useGoogleLogin({
+    onSuccess: responseGoogle,
+    onError: responseGoogle,
+    flow: "auth-code",
+  });
   return (
     <div>
       {loading ? (
@@ -70,7 +128,7 @@ const Login = () => {
         <div className="flex justify-center items-center h-screen bg-gray-100">
           <div className="bg-white p-8 shadow-md rounded-lg w-full max-w-sm border border-green-400">
             <h2 className="text-2xl font-bold text-center mb-6 capitalize">
-              Login as {role === 'owner' ? 'Property Owner' : 'User'}
+              Login as {role === "owner" ? "Property Owner" : "User"}
             </h2>
 
             <Form
@@ -81,7 +139,10 @@ const Login = () => {
             >
               <Form.Item
                 name="email"
-                rules={[{ required: true, message: 'Please input your email!' }]}
+                rules={[
+                  { required: true, message: "Please input your email!" },
+                  { type: "email", message: "Enter a valid email!" },
+                ]}
               >
                 <Input
                   prefix={<UserOutlined className="text-gray-500" />}
@@ -92,7 +153,9 @@ const Login = () => {
 
               <Form.Item
                 name="password"
-                rules={[{ required: true, message: 'Please input your Password!' }]}
+                rules={[
+                  { required: true, message: "Please input your Password!" },
+                ]}
               >
                 <Input.Password
                   prefix={<LockOutlined className="text-gray-500" />}
@@ -104,7 +167,10 @@ const Login = () => {
               <Form.Item>
                 <div className="flex justify-between items-center">
                   <Checkbox className="text-gray-600">Remember me</Checkbox>
-                  <NavLink to="/forgot-password" className="text-green-600 hover:underline">
+                  <NavLink
+                    to="/forgot-password"
+                    className="text-green-600 hover:underline"
+                  >
                     Forgot password?
                   </NavLink>
                 </div>
@@ -127,10 +193,22 @@ const Login = () => {
                   to={`/register/${role}`}
                   className="text-green-600 hover:underline ml-1"
                 >
-                  Register as {role === 'owner' ? 'Owner' : 'User'}
+                  Register as {role === "owner" ? "Owner" : "User"}
                 </NavLink>
               </div>
+
+              
             </Form>
+             <div className="flex items-center my-4">
+                <hr className="flex-grow border-gray-300" />
+                <span className="mx-3 text-gray-700 text-sm">or</span>
+                <hr className="flex-grow border-gray-300" />
+              </div>
+
+              <button onClick={() => googleLogin()} className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-md py-2 font-medium hover:bg-gray-100 transition mb-4">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="G" className="w-5 h-5" />
+                Continue with Google
+              </button>
           </div>
         </div>
       )}

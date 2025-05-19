@@ -27,7 +27,8 @@ const UserSchema = new Schema({
         type: String,
         enum:['user','owner','admin'],
         default : "user"
-    }
+    },
+    
 });
 
 module.exports = model("User", UserSchema, "users");

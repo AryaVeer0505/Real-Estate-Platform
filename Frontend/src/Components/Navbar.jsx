@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { MenuOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
+import { MenuOutlined, CloseOutlined, UserOutlined, HeartOutlined,ShoppingCartOutlined, DashboardOutlined, LogoutOutlined } from '@ant-design/icons';
 import Logo from "../assets/logo.png";
 
 const LoginDropdown = () => (
@@ -13,15 +13,19 @@ const LoginDropdown = () => (
 const UserDropdown = ({ onLogout, userRole }) => (
   <div className="absolute right-0 mt-2 bg-white text-black rounded shadow-md w-48 z-50">
     {userRole === 'owner' && (
-      <NavLink
-        to="/ownerDashboard"
-        className="block px-4 py-2 hover:bg-gray-200 font-medium"
-      >
-        Dashboard
+      <NavLink to="/ownerDashboard" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+        <DashboardOutlined /> Dashboard
       </NavLink>
     )}
-    <NavLink to="/profile" className="block px-4 py-2 hover:bg-gray-200 font-medium">My Profile</NavLink>
-    <button onClick={onLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-200 font-medium">Logout</button>
+    <NavLink to="/profile" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <UserOutlined /> My Profile
+    </NavLink>
+    <NavLink to="/favorites" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <HeartOutlined /> Favorites
+    </NavLink>
+    <button onClick={onLogout} className=" w-full text-left px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <LogoutOutlined /> Logout
+    </button>
   </div>
 );
 
@@ -51,14 +55,24 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const updateLoginStatus = () => {
-      setIsLoggedIn(!!localStorage.getItem('token'));
-    };
+useEffect(() => {
+  const updateLoginStatus = () => {
+    const userData = JSON.parse(localStorage.getItem("user"));
+    const token = localStorage.getItem("token");
 
-    window.addEventListener('loginStatusChanged', updateLoginStatus);
-    return () => window.removeEventListener('loginStatusChanged', updateLoginStatus);
-  }, []);
+    setIsLoggedIn(!!token);
+  };
+
+  window.addEventListener("loginStatusChanged", updateLoginStatus);
+
+  
+  updateLoginStatus();
+
+  return () => window.removeEventListener("loginStatusChanged", updateLoginStatus);
+}, []);
+
+
+
 
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? 'hidden' : 'auto';
@@ -129,22 +143,29 @@ const Navbar = () => {
         </li>
       </ul>
 
-      <div className="hidden md:block relative dropdown-container">
-        {isLoggedIn ? (
-          <button onClick={toggleDropdown} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
-            <UserOutlined />
-          </button>
-        ) : (
-          <button onClick={toggleDropdown} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
-            Login
-          </button>
-        )}
-        {isDropdownOpen && (
-          isLoggedIn
-            ? <UserDropdown onLogout={handleLogout} userRole={userRole} />
-            : <LoginDropdown />
-        )}
-      </div>
+      <div className="hidden md:flex gap-6 relative dropdown-container">
+  {isLoggedIn ? (
+    <>
+      <button onClick={toggleDropdown} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2">
+        <UserOutlined />
+      </button>
+      <NavLink to="/cart" className="text-black px-3 rounded-lg bg-white  text-2xl hover:bg-gray-500 hover:text-white transition">
+        <ShoppingCartOutlined />
+      </NavLink>
+    </>
+  ) : (
+    <button onClick={toggleDropdown} className="bg-green-500 text-white px-4 py-2 rounded-lg font-bold">
+      Login
+    </button>
+  )}
+
+  {isDropdownOpen && (
+    isLoggedIn
+      ? <UserDropdown onLogout={handleLogout} userRole={userRole} />
+      : <LoginDropdown />
+  )}
+</div>
+
     </nav>
   );
 };

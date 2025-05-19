@@ -12,6 +12,10 @@ import Profile from './Pages/Profile.jsx';
 import AddProperty from './Pages/AddProperty.jsx';
 import NotFound from './Components/NotFound.jsx';
 import OwnerDashboard from './Pages/OwnerDashboard.jsx';
+import Cart from './Pages/Cart.jsx';
+import Favorites from './Pages/Favorites.jsx';
+
+
 const App = () => {
   const location = useLocation();
   const isNotFound = location.pathname === '*' || location.pathname === '/404';
@@ -28,6 +32,8 @@ const App = () => {
         <Route path="/property/:id" element={<Property />} />
         <Route path="/addProperty" element={<AddProperty />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/favorites" element={<Favorites />} />
         <Route path="/login/:role" element={<Login />} />
         <Route path="/register/:role" element={<Register />} />
         <Route path='/ownerDashboard' element={<OwnerDashboard/>}/>

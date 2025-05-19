@@ -4,7 +4,7 @@ const express = require("express");
 const backend = express();
 const cors = require("cors");
 const createDefaultAdmin = require("./controller/auth/DefaultAdmin.js");
-
+const path = require("path");
 backend.use(express.json());
 
 backend.use(
@@ -15,6 +15,8 @@ backend.use(
 );
 
 backend.use(routes);
+
+backend.use("/upload", express.static(path.join(__dirname, "./uploads")));
 
 mongoose
   .connect(

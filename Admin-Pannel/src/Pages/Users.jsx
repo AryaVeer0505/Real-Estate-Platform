@@ -16,7 +16,8 @@ import Sidebar from "../Components/Sidebar";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { baseURL } from "../../config";
 import axiosInstance from "../../axiosInnstance";
-
+import { ToastContainer,toast } from "react-toastify";
+import Loader from "../Components/Loader.jsx";
 const { Option } = Select;
 const { Content, Footer } = Layout;
 
@@ -28,6 +29,7 @@ const Users = () => {
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [editingUser, setEditingUser] = useState(null);
+  const [loading,setLoading]=useState(false)
 
   useEffect(() => {
     fetchUsers();
@@ -35,12 +37,15 @@ const Users = () => {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true)
       const res = await axiosInstance.get(`${baseURL}/api/auth/getUsers`);
       setUsers(res.data || []);
+      setLoading(false)
     } catch (error) {
       console.error("Failed to fetch users", error);
       message.error("Failed to load users");
       setUsers([]);
+      setLoading(false)
     }
   };
 
@@ -58,45 +63,58 @@ const Users = () => {
 
   const handleEditCancel = () => {
     setIsEditModalVisible(false);
+    setEditingUser(null);
     editForm.resetFields();
   };
 
   const handleAddUser = async (values) => {
     try {
+      setLoading(true)
       await axiosInstance.post(`${baseURL}/api/auth/addUser`, values);
       message.success("User added successfully!");
+      toast.success("User Added",{position:"top-right"})
       setIsModalVisible(false);
       form.resetFields();
       fetchUsers();
     } catch (error) {
       console.error("Add user error:", error.response?.data || error.message);
       message.error(error.response?.data?.message || "Failed to add user");
+      toast.error("Failed to add new user",{position:"top-right"})
+      setLoading(false)
     }
   };
 
   const handleUpdateUser = async (values) => {
     try {
+      
       await axiosInstance.put(
         `${baseURL}/api/auth/updateUser/${editingUser._id}`,
         values
       );
       message.success("User updated successfully!");
       setIsEditModalVisible(false);
+      toast.success("User details updated",{position:"top-right"})
       fetchUsers();
     } catch (error) {
       console.error("Update error:", error);
       message.error("Failed to update user");
+      toast.error("Failed to update user details",{position:"top-right"})
+     
     }
   };
 
   const handleDelete = async (userId) => {
     try {
+     
       await axiosInstance.delete(`${baseURL}/api/auth/deleteUser/${userId}`);
       message.success("User deleted successfully!");
+      toast.success("User Deleted",{position:"top-right"})
       fetchUsers();
     } catch (error) {
       console.error("Delete error:", error);
       message.error("Failed to delete user");
+      toast.error("Failed to delete user",{position:"top-right"})
+      
     }
   };
 
@@ -145,6 +163,8 @@ const Users = () => {
   ];
 
   return (
+    <div>{loading ?(
+      <Loader/>):(
     <Layout style={{ minHeight: "100vh" }}>
       <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <Layout>
@@ -274,7 +294,9 @@ const Users = () => {
         </Content>
         <Footer className="text-center">Admin Dashboard ©2025</Footer>
       </Layout>
+      <ToastContainer/>
     </Layout>
+      )}</div>
   );
 };
 

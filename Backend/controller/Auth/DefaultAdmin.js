@@ -5,14 +5,17 @@ const createDefaultAdmin = async () => {
   if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash("akay123", 10);
     const newAdmin = new User({
-      username: "admin",
-      email: "aryaveerkanwar11458@.com",
-      number:"12121212",
+      username: "Aryaveer",
+      email: "aryaveerkanwar11458@gmail.com",
+      number:"7018800377",
       password: hashedPassword,
       role: "admin",
     });
     await newAdmin.save();
     console.log("Default admin created");
+  }
+  else{
+    console.log("hello")
   }
 };
 module.exports=createDefaultAdmin

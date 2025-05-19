@@ -4,7 +4,6 @@ import {
   DashboardOutlined,
   UserOutlined,
   BarChartOutlined,
-  SettingOutlined,
 } from "@ant-design/icons";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
@@ -19,7 +18,6 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
     const path = location.pathname;
     if (path.includes("users")) return ["2"];
     if (path.includes("properties")) return ["3"];
-    if (path.includes("settings")) return ["4"];
     return ["1"];
   };
 
@@ -54,9 +52,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         <Menu.Item key="3" icon={<BarChartOutlined />}>
           <NavLink to="/dashboard/properties">Properties</NavLink>
         </Menu.Item>
-        <Menu.Item key="4" icon={<SettingOutlined />}>
-          <NavLink to="/dashboard/settings">Settings</NavLink>
-        </Menu.Item>
+
       </Menu>
     </Sider>
   );
