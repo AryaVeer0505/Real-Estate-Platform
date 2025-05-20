@@ -17,7 +17,6 @@ const favoriteSchema = new Schema(
   { timestamps: true }
 );
 
-// Add compound index to ensure unique favorite per user-property pair
 favoriteSchema.index({ userId: 1, propertyId: 1 }, { unique: true });
 
 module.exports = model('Favorite', favoriteSchema, 'favorites');

@@ -12,7 +12,7 @@ const Home = () => {
   useEffect(() => {
     const fetchLatestProperties = async () => {
       try {
-        const response = await axiosInstance.get(`${baseURL}/api/property/allProperties`);
+        const response = await axiosInstance.get(`${baseURL}/api/property/allProperties?all=true`);
         if (response.status === 200) {
           setLatestProperties(response.data.properties.slice(0, 3));
         }

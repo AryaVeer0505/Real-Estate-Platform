@@ -46,9 +46,10 @@ const propertyValidation = Joi.object({
         'laundry'
       )
     )
-    .min(1) 
-    .required(),
+    .min(1)
+    .required()
 });
+
 
 
 

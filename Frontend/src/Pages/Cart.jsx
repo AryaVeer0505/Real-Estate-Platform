@@ -28,12 +28,11 @@ const Cart = () => {
 
         if (response.status === 200) {
           setCart(response.data.cartItems);
-          
         }
       } catch (error) {
         console.error("Error fetching cart:", error);
         message.error("An error occurred while fetching the cart.");
-        toast.success("Removed from cart")
+        toast.success("Removed from cart");
       } finally {
         setLoading(false);
       }
@@ -43,33 +42,37 @@ const Cart = () => {
   }, []);
 
   const handleRemoveFromCart = async (propertyId) => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("You must be logged in to remove items.");
-      return;
-    }
-
-    const response = await axiosInstance.post(
-      `${baseURL}/api/cart/remove`,
-      { propertyId },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("You must be logged in to remove items.");
+        return;
       }
-    );
 
-    if (response.status === 200) {
-      
-      setCart((prevCart) => prevCart.filter(item => item.property._id !== propertyId));
-      toast.success("Removed from cart");
+      const response = await axiosInstance.post(
+        `${baseURL}/api/cart/remove`,
+        { propertyId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setCart((prevCart) =>
+          prevCart.filter(
+            (item) => item.property && item.property._id !== propertyId
+          )
+        );
+
+        toast.success("Removed from cart");
+      }
+    } catch (error) {
+      console.error("Error removing from cart:", error);
+      toast.error("Failed to remove item from cart.");
     }
-  } catch (error) {
-    console.error("Error removing from cart:", error);
-    toast.error("Failed to remove item from cart.");
-  }
-};
+  };
 
   const getTotal = () => {
     return cart.reduce((sum, item) => sum + (item.property?.price || 0), 0);
@@ -155,7 +158,7 @@ const Cart = () => {
       ) : (
         <p className="text-center text-gray-600 text-lg">Your cart is empty.</p>
       )}
-      <ToastContainer/>
+      <ToastContainer />
     </div>
   );
 };

@@ -5,11 +5,12 @@ const Property = require('../../models/property.model.js');
 const updateProperty = async (req, res) => {
   try {
     const property_id = req.params.id;
-    const { title, location, price, type, description, amenities } = req.body; // <-- add amenities here
+    const { title, location, price, type, description, amenities } = req.body;
 
     let images = req.body.images || [];
 
-    const status = "approved";
+    // REMOVE this line so status doesn't auto-change
+    // const status = "approved";
 
     if (req.files && req.files.length > 0) {
       const oldProperty = await Property.findById(property_id);
@@ -24,10 +25,9 @@ const updateProperty = async (req, res) => {
       images = req.files.map((file) => file.filename);
     }
 
-    // Update property with amenities included
     const updatedProperty = await Property.findByIdAndUpdate(
       property_id,
-      { title, location, price, type, images, description, status, amenities }, // <-- add amenities here
+      { title, location, price, type, images, description, amenities }, // status removed here
       { new: true }
     );
 
@@ -45,6 +45,5 @@ const updateProperty = async (req, res) => {
     });
   }
 };
-
 
 module.exports = updateProperty;

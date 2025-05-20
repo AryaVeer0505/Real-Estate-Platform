@@ -31,7 +31,6 @@ const Favorites = () => {
         }
       } catch (error) {
         console.error("Error fetching favorites:", error);
-       
       } finally {
         setLoading(false);
       }
@@ -58,7 +57,10 @@ const Favorites = () => {
       );
 
       if (response.status === 200) {
-        setFavorites((prev) => prev.filter((item) => item._id !== propertyId));
+        setFavorites((prev = []) =>
+          prev.filter((item) => item && item._id !== propertyId)
+        );
+
         toast.success("Removed from favorites.");
       }
     } catch (error) {
@@ -78,48 +80,52 @@ const Favorites = () => {
         <div className="text-center">Loading...</div>
       ) : favorites.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {favorites.map((property) => (
-            <div
-              key={property._id}
-              className="bg-white shadow-lg rounded-lg overflow-hidden p-4"
-            >
-              <div className="relative">
-                <img
-                  src={
-                    property.images?.[0]
-                      ? `${baseURL}${property.images[0]}`
-                      : "/default-property.jpg"
-                  }
-                  alt={property.title}
-                  className="w-full h-48 object-cover rounded"
-                />
-              </div>
+          {favorites.map((property) => {
+            if (!property) return null; // Skip null items
 
-              <div className="p-4">
-                <h3 className="text-lg font-semibold">{property.title}</h3>
-                <p className="text-gray-600">{property.location}</p>
-                <p className="text-green-500 text-2xl font-bold">
-                  ₹{property.price}
-                </p>
-              </div>
+            return (
+              <div
+                key={property._id}
+                className="bg-white shadow-lg rounded-lg overflow-hidden p-4"
+              >
+                <div className="relative">
+                  <img
+                    src={
+                      property.images?.[0]
+                        ? `${baseURL}${property.images[0]}`
+                        : "/default-property.jpg"
+                    }
+                    alt={property.title || "Property Image"}
+                    className="w-full h-48 object-cover rounded"
+                  />
+                </div>
 
-              <div className="p-4 flex justify-between items-center">
-                <button
-                  onClick={() => handleRemoveFavorite(property._id)}
-                  className="px-2 py-1 bg-white text-red-500 rounded-full shadow-lg hover:bg-gray-200 transition"
-                >
-                  <HeartFilled className="text-red-500 text-lg" />
-                </button>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold">{property.title}</h3>
+                  <p className="text-gray-600">{property.location}</p>
+                  <p className="text-green-500 text-2xl font-bold">
+                    ₹{property.price}
+                  </p>
+                </div>
 
-                <NavLink
-                  to={`/property/${property._id}`}
-                  className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                >
-                  View Details
-                </NavLink>
+                <div className="p-4 flex justify-between items-center">
+                  <button
+                    onClick={() => handleRemoveFavorite(property._id)}
+                    className="px-2 py-1 bg-white text-red-500 rounded-full shadow-lg hover:bg-gray-200 transition"
+                  >
+                    <HeartFilled className="text-red-500 text-lg" />
+                  </button>
+
+                  <NavLink
+                    to={`/property/${property._id}`}
+                    className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                  >
+                    View Details
+                  </NavLink>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="text-center text-gray-600 text-lg">

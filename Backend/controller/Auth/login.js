@@ -1,5 +1,5 @@
 require("dotenv").config();
-const User = require("../../models/User.model");
+const User = require('../../models/User.model.js')
 const { loginValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
 const {generateToken}=require("../../middlewares/checkAuth.js")
@@ -38,6 +38,7 @@ const login = async (req, res, next) => {
         _id: existingUser._id,
       username: existingUser.username,
       email: existingUser.email,
+        role: existingUser.role, 
     };
 
     const secretKey=process.env.ACCESS_SECRET_KEY

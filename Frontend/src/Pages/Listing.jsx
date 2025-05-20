@@ -30,12 +30,10 @@ const Listing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Helper to update localStorage favorites
   const updateLocalStorageFavorites = (updatedFavorites) => {
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
   };
 
-  // Fetch favorites from server and return an array of property IDs
   const fetchFavoritesFromServer = async (token) => {
     try {
       const response = await axiosInstance.get("/api/favorite/favorites", {
@@ -45,8 +43,9 @@ const Listing = () => {
       });
 
       if (response.status === 200) {
-        // Extract just the property IDs
-        return response.data.favorites.map((fav) => fav._id);
+        return response.data.favorites
+          .filter((fav) => fav && fav._id) 
+          .map((fav) => fav._id);
       }
     } catch (error) {
       console.error("Error fetching favorites:", error);
@@ -55,7 +54,6 @@ const Listing = () => {
     return [];
   };
 
-  // Fetch properties and favorites on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,7 +66,7 @@ const Listing = () => {
         }
 
         const propertiesResponse = await axiosInstance.get(
-          `${baseURL}/api/property/allProperties`,
+          `/api/property/allProperties?all=true`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -98,7 +96,6 @@ const Listing = () => {
     fetchFavorites();
   }, []);
 
-  // Handle add or remove favorite
   const handleFavorite = async (propertyId) => {
     try {
       const token = localStorage.getItem("token");
@@ -131,7 +128,6 @@ const Listing = () => {
           : "Added to favorites";
         toast.success(successMessage);
 
-        // Re-fetch the favorites to update the state accurately
         const updatedFavorites = await fetchFavoritesFromServer(token);
         setFavorites(updatedFavorites);
         updateLocalStorageFavorites(updatedFavorites);
@@ -158,16 +154,13 @@ const Listing = () => {
         }
       );
 
-  
-        toast.success("Added to cart successfully!");
-      
+      toast.success("Added to cart successfully!");
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error("Failed to add to cart.");
     }
   };
 
-  // Filter properties by search term and category
   const filteredProperties = properties.filter((property) => {
     const matchesSearch =
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
