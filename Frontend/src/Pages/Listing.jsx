@@ -151,16 +151,16 @@ const Listing = () => {
       }
 
       const response = await axiosInstance.post(
-        "/api/favorite/favorites/add",
+        "/api/cart/add",
         { propertyId },
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      if (response.status === 200) {
+  
         toast.success("Added to cart successfully!");
-      }
+      
     } catch (error) {
       console.error("Error adding to cart:", error);
       toast.error("Failed to add to cart.");
@@ -188,7 +188,9 @@ const Listing = () => {
       ) : (
         <div className="flex flex-col md:flex-row w-full min-h-screen bg-gray-100 p-6 gap-6">
           <div className="md:w-1/4 w-full bg-white p-5 rounded-lg shadow sticky top-6 h-max">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">Categories</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Categories
+            </h3>
             <ul className="space-y-3">
               {categories.map((cat) => (
                 <li key={cat}>
@@ -210,7 +212,9 @@ const Listing = () => {
           <div className="md:w-3/4 w-full">
             <div className="mb-6 flex flex-col ">
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold mb-2">Available Listings</span>
+                <span className="text-2xl font-bold mb-2">
+                  Available Listings
+                </span>
               </div>
 
               <input

@@ -2,9 +2,13 @@ const Favorite = require('../../models/favorite.model.js');
 const Property = require('../../models/property.model.js');
 
 const AddToFavorites = async (req, res) => {
+  const { propertyId } = req.body;
+  const userId = req.user?._id;
+
   try {
-    const { propertyId } = req.body;
-    const userId = req.user._id;
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated.' });
+    }
 
     if (!propertyId) {
       return res.status(400).json({ message: 'Property ID is required.' });
@@ -29,7 +33,7 @@ const AddToFavorites = async (req, res) => {
     return res.status(201).json({ message: 'Property added to favorites' });
 
   } catch (error) {
-    console.error(`Error adding property ${propertyId} to favorites for user ${userId}:`, error);
+    console.error(`Error adding property ${propertyId || 'unknown'} to favorites for user ${userId || 'unknown'}:`, error);
     return res.status(500).json({ message: 'An error occurred while adding the property to favorites' });
   }
 };

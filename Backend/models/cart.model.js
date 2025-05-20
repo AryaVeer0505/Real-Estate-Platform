@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const cartSchema = new mongoose.Schema({
@@ -6,12 +5,17 @@ const cartSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true 
   },
-  properties: [{
+  property: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Property'
-  }]
-}, { timestamps: true });
+    ref: 'Property', 
+    required: true,
+  },
+  addedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
-module.exports = mongoose.model('Cart', cartSchema);
+module.exports = mongoose.models.Cart || mongoose.model('Cart', cartSchema);
+
