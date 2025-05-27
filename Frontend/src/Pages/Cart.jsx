@@ -142,8 +142,7 @@ const Cart = () => {
 
           <div className="mt-6 bg-white rounded-lg shadow p-6 flex flex-col sm:flex-row justify-between items-center">
             <div className="text-lg font-semibold text-gray-700">
-              Total Items: <span className="font-bold">{cart.length}</span>
-              <br />
+              
               Total Price:{" "}
               <span className="text-green-600 font-bold">₹{getTotal()}</span>
             </div>

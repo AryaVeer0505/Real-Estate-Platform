@@ -1,0 +1,2 @@
+const Stripe = require("stripe")
+const stripe=Stripe("sk_test_51RKeUDE1gw3WghtiNL29huJN5RxbPSQIYZGR3eVSuPcN3XvDxBYknwG6JIm9wPRjdImiXEQ9AOjDyLSrdlt0eqg400xO1L76LI")

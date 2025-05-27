@@ -5,12 +5,9 @@ const Property = require('../../models/property.model.js');
 const updateProperty = async (req, res) => {
   try {
     const property_id = req.params.id;
-    const { title, location, price, type, description, amenities } = req.body;
+    const { title, location, price, type, description, amenities, status } = req.body;
 
     let images = req.body.images || [];
-
-    // REMOVE this line so status doesn't auto-change
-    // const status = "approved";
 
     if (req.files && req.files.length > 0) {
       const oldProperty = await Property.findById(property_id);
@@ -27,7 +24,7 @@ const updateProperty = async (req, res) => {
 
     const updatedProperty = await Property.findByIdAndUpdate(
       property_id,
-      { title, location, price, type, images, description, amenities }, // status removed here
+      { title, location, price, type, images, description, amenities, status }, // ✅ include status here
       { new: true }
     );
 
@@ -36,7 +33,6 @@ const updateProperty = async (req, res) => {
       message: "Successfully updated",
       property: updatedProperty,
     });
-    console.log("Successfully updated");
   } catch (error) {
     console.error("Failed to edit", error);
     res.status(500).json({

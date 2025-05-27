@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [users, setUsers] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [appointments, setAppointments] = useState([]); // New state for appointments
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,6 @@ const AdminDashboard = () => {
 
         const propertiesRes = await axiosInstance.get(`${baseURL}/api/property/allProperties`);
         console.log("Properties Data:", propertiesRes.data);
-        
         if (Array.isArray(propertiesRes.data)) {
           setProperties(propertiesRes.data);
         } else if (propertiesRes.data.properties) {
@@ -39,6 +39,16 @@ const AdminDashboard = () => {
         } else {
           message.error("Failed to load properties data.");
         }
+
+        // Fetch appointments (change URL to your actual API)
+        const appointmentsRes = await axiosInstance.get(`${baseURL}/api/appointment/allAppointments`);
+        console.log("Appointments Data:", appointmentsRes.data);
+        if (Array.isArray(appointmentsRes.data.appointments)) {
+          setAppointments(appointmentsRes.data.appointments);
+        } else {
+          message.error("Failed to load appointments data.");
+        }
+
       } catch (error) {
         console.error("Failed to fetch data", error);
         message.error("Failed to load data.");
@@ -67,14 +77,19 @@ const AdminDashboard = () => {
 
               <div className="p-6 bg-white rounded shadow">
                 <Row gutter={16}>
-                  <Col span={12}>
+                  <Col span={8}>
                     <Card title="Total Users" bordered={false}>
                       {users.length > 0 ? users.length : "No users available"}
                     </Card>
                   </Col>
-                  <Col span={12}>
+                  <Col span={8}>
                     <Card title="Properties" bordered={false}>
                       {properties.length > 0 ? properties.length : "No properties available"}
+                    </Card>
+                  </Col>
+                  <Col span={8}>
+                    <Card title="Appointments" bordered={false}>
+                      {appointments.length > 0 ? appointments.length : "No appointments available"}
                     </Card>
                   </Col>
                 </Row>

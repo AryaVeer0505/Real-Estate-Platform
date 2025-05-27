@@ -6,9 +6,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Loader from "../Components/Loader.jsx";
 import { baseURL } from "../../config.js";
-import axiosInstance from "../../axiosInnstance.js"; 
+import axiosInstance from "../../axiosInnstance.js";
 import axios from "axios";
-import { useGoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from "@react-oauth/google";
 const Login = () => {
   const navigate = useNavigate();
   const { role } = useParams();
@@ -17,35 +17,44 @@ const Login = () => {
   const onFinish = async (values) => {
     setLoading(true);
     const { email, password } = values;
-  
+
     try {
       const response = await axiosInstance.post(`${baseURL}/api/auth/login`, {
         email,
         password,
         role,
       });
-    
+
       if (response.data.success) {
         message.success(response.data.message);
         toast.success("Successfully Logged In", { position: "top-center" });
 
         const { payload, token } = response.data;
 
-   if (payload) {
-  const userRole = payload.role ? payload.role.trim().toLowerCase() : "user";
+        if (payload) {
+          const {
+            _id,
+            username,
+            email: userEmail,
+            role: userRoleFromPayload,
+          } = payload;
 
-  localStorage.setItem(
-    "user",
-    JSON.stringify({
-      username: payload.username || "",
-      email: payload.email || "",
-      role: userRole,
-    })
-  );
+          const userRole = userRoleFromPayload
+            ? userRoleFromPayload.trim().toLowerCase()
+            : "user";
 
-  localStorage.setItem("userType", userRole);
-}
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              _id,
+              username,
+              email: userEmail,
+              role: userRole,
+            })
+          );
 
+          localStorage.setItem("userType", userRole);
+        }
 
         if (token) {
           localStorage.setItem("token", token);
@@ -71,50 +80,51 @@ const Login = () => {
     }
   };
 
-const responseGoogle = async (authResult) => {
-  setLoading(true);
-  try {
-    if (authResult.code) {
-      // Pass the role parameter along with the code
-      const payload = { code: authResult.code, role };
+  const responseGoogle = async (authResult) => {
+    setLoading(true);
+    try {
+      if (authResult.code) {
+        const payload = { code: authResult.code, role };
 
-      const res = await axios.post("http://localhost:5001/api/auth/google", payload);
-      const { user, isNewUser } = res.data;
+        const res = await axios.post(
+          "http://localhost:5001/api/auth/google",
+          payload
+        );
+        const { user, isNewUser } = res.data;
 
-      const { email, name, image, token, role: userRole } = user;
+        const { email, name, image, token, role: userRole, _id } = user;
 
-      const userInfo = {
-        email,
-        name,
-        role: userRole,
-        image,
-      };
+        const userInfo = {
+          _id,
+          email,
+          name,
+          role: userRole,
+          image,
+        };
 
-      localStorage.setItem("user", JSON.stringify(userInfo));
-      localStorage.setItem("token", token);
-      localStorage.setItem("userType", userRole); // Update the userType key
+        localStorage.setItem("user", JSON.stringify(userInfo));
+        localStorage.setItem("token", token);
+        localStorage.setItem("userType", userRole);
 
-      window.dispatchEvent(new Event("loginStatusChanged"));
+        window.dispatchEvent(new Event("loginStatusChanged"));
 
-      const successMessage = isNewUser 
-        ? "Registration Successful!" 
-        : "Login Successful!";
+        const successMessage = isNewUser
+          ? "Registration Successful!"
+          : "Login Successful!";
 
-      toast.success(successMessage, { position: "top-center" });
-      setTimeout(() => navigate(`/`), 2000);
-    } else {
-      throw new Error("Google authentication failed");
+        toast.success(successMessage, { position: "top-center" });
+        setTimeout(() => navigate(`/`), 2000);
+      } else {
+        throw new Error("Google authentication failed");
+      }
+    } catch (error) {
+      console.error("Error during Google authentication:", error.message);
+      toast.error("Failed to login", { position: "top-center" });
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error during Google authentication:", error.message);
-    toast.error("Failed to login", { position: "top-center" });
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-
-  
   const googleLogin = useGoogleLogin({
     onSuccess: responseGoogle,
     onError: responseGoogle,
@@ -196,19 +206,24 @@ const responseGoogle = async (authResult) => {
                   Register as {role === "owner" ? "Owner" : "User"}
                 </NavLink>
               </div>
-
-              
             </Form>
-             <div className="flex items-center my-4">
-                <hr className="flex-grow border-gray-300" />
-                <span className="mx-3 text-gray-700 text-sm">or</span>
-                <hr className="flex-grow border-gray-300" />
-              </div>
+            <div className="flex items-center my-4">
+              <hr className="flex-grow border-gray-300" />
+              <span className="mx-3 text-gray-700 text-sm">or</span>
+              <hr className="flex-grow border-gray-300" />
+            </div>
 
-              <button onClick={() => googleLogin()} className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-md py-2 font-medium hover:bg-gray-100 transition mb-4">
-                <img src="https://developers.google.com/identity/images/g-logo.png" alt="G" className="w-5 h-5" />
-                Continue with Google
-              </button>
+            <button
+              onClick={() => googleLogin()}
+              className="flex items-center justify-center gap-2 w-full bg-white border border-gray-300 rounded-md py-2 font-medium hover:bg-gray-100 transition mb-4"
+            >
+              <img
+                src="https://developers.google.com/identity/images/g-logo.png"
+                alt="G"
+                className="w-5 h-5"
+              />
+              Continue with Google
+            </button>
           </div>
         </div>
       )}

@@ -43,16 +43,18 @@ const login = async (req, res, next) => {
 
     const secretKey=process.env.ACCESS_SECRET_KEY
     const token = generateToken(payload,secretKey);
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      payload: { 
-        username: existingUser.username, 
-        email: existingUser.email,
-        role: existingUser.role
-      },
-      token:token,
-    });
+   return res.status(200).json({
+  success: true,
+  message: "Login successful",
+  payload: { 
+    _id: existingUser._id,  
+    username: existingUser.username, 
+    email: existingUser.email,
+    role: existingUser.role
+  },
+  token: token,
+});
+
 
   } catch (error) {
     console.error("Error during login:", error);

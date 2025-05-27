@@ -4,6 +4,8 @@ import {
   DashboardOutlined,
   UserOutlined,
   BarChartOutlined,
+  CalendarOutlined,
+  ShoppingCartOutlined,
 } from "@ant-design/icons";
 import { NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/logo.png";
@@ -13,11 +15,12 @@ const { Sider } = Layout;
 const Sidebar = ({ collapsed, setCollapsed }) => {
   const location = useLocation();
 
-
   const getSelectedKeys = () => {
     const path = location.pathname;
     if (path.includes("users")) return ["2"];
     if (path.includes("properties")) return ["3"];
+    if (path.includes("appointments")) return ["4"];
+    if (path.includes("orders")) return ["5"];
     return ["1"];
   };
 
@@ -38,11 +41,7 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         />
       </div>
 
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={getSelectedKeys()} 
-      >
+      <Menu theme="dark" mode="inline" selectedKeys={getSelectedKeys()}>
         <Menu.Item key="1" icon={<DashboardOutlined />}>
           <NavLink to="/dashboard">Dashboard</NavLink>
         </Menu.Item>
@@ -52,7 +51,12 @@ const Sidebar = ({ collapsed, setCollapsed }) => {
         <Menu.Item key="3" icon={<BarChartOutlined />}>
           <NavLink to="/dashboard/properties">Properties</NavLink>
         </Menu.Item>
-
+        <Menu.Item key="4" icon={<CalendarOutlined />}>
+          <NavLink to="/dashboard/appointments">Appointments</NavLink>
+        </Menu.Item>
+        <Menu.Item key="5" icon={<ShoppingCartOutlined />}>
+          <NavLink to="/dashboard/orders">Orders</NavLink>
+        </Menu.Item>
       </Menu>
     </Sider>
   );

@@ -161,7 +161,9 @@ const Listing = () => {
     }
   };
 
-  const filteredProperties = properties.filter((property) => {
+  const filteredProperties = properties
+  .filter((property) => property.status?.toLowerCase() !== "pending") // ✅ filter out "pending"
+  .filter((property) => {
     const matchesSearch =
       property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -172,6 +174,7 @@ const Listing = () => {
 
     return matchesSearch && matchesCategory;
   });
+
 
   return (
     <div>

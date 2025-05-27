@@ -32,6 +32,7 @@ const propertyValidation = Joi.object({
     .required(),
   description: Joi.string().min(5).required(),
   images: Joi.array().items(Joi.string()).max(5),
+   status: Joi.string().valid("Sold", "Not Sold", "Pending").optional(),
   amenities: Joi.array()
     .items(
       Joi.string().valid(

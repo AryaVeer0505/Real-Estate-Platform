@@ -17,17 +17,24 @@ const UserDropdown = ({ onLogout, userRole }) => (
         <DashboardOutlined /> Dashboard
       </NavLink>
     )}
-    <NavLink to="/profile" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
-      <UserOutlined /> My Profile
-    </NavLink>
+   
     <NavLink to="/favorites" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <HeartOutlined /> Favorites
     </NavLink>
+
+    <NavLink to="/myBookings" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <ShoppingCartOutlined /> My Appointments
+    </NavLink>
+     <NavLink to="/change-password" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <UserOutlined /> Change Password
+    </NavLink>
+
     <button onClick={onLogout} className=" w-full text-left px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <LogoutOutlined /> Logout
     </button>
   </div>
 );
+
 
 const Navbar = () => {
   const location = useLocation();
@@ -65,12 +72,10 @@ useEffect(() => {
 
   window.addEventListener("loginStatusChanged", updateLoginStatus);
 
-  
   updateLoginStatus();
 
   return () => window.removeEventListener("loginStatusChanged", updateLoginStatus);
 }, []);
-
 
 
 
@@ -141,6 +146,15 @@ useEffect(() => {
               : <LoginDropdown />
           )}
         </li>
+        <li className="block md:hidden">
+  <NavLink
+    to="/cart"
+    className="text-black px-4 py-2 rounded-lg bg-white text-xl hover:bg-gray-500 hover:text-white transition flex items-center gap-2"
+  >
+    <ShoppingCartOutlined /> Cart
+  </NavLink>
+</li>
+
       </ul>
 
       <div className="hidden md:flex gap-6 relative dropdown-container">

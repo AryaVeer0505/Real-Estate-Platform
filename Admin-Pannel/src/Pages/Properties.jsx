@@ -38,23 +38,48 @@ const Properties = () => {
   const [editingProperty, setEditingProperty] = useState(null);
   const [loading,setLoading]=useState(false)
 
-  const fetchProperties = async () => {
-    try {
-      setLoading(true)
-      const response = await axiosInstance.get(`${baseURL}/api/property/allProperties`);
-      if (response.data.success) {
-        setProperties(response.data.properties);
-        setLoading(false)
-      } else {
-        message.error(response.data.message || "Failed to fetch properties");
-        setLoading(false)
-      }
-    } catch (err) {
-      console.error("Error fetching properties:", err);
-      message.error("An error occurred while fetching properties");
-      setLoading(false)
+const fetchProperties = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      message.error("Please login as admin to fetch properties");
+      setLoading(false);
+      return;
     }
-  };
+
+    const response = await axiosInstance.get(`${baseURL}/api/property/allProperties`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response || !response.data) {
+      message.error("No response from server");
+      return;
+    }
+
+    console.log("API Response:", response.data);
+
+    if (response.data.success) {
+      setProperties(response.data.properties);
+    } else {
+      message.error(response.data.message || "Failed to fetch properties");
+    }
+  } catch (err) {
+    console.error("Error fetching properties:", err);
+    if (err?.response?.status === 401) {
+      message.error("Session expired. Please log in again.");
+      
+    } else {
+      message.error("An error occurred while fetching properties");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
 
   useEffect(() => {
     fetchProperties();
@@ -384,7 +409,7 @@ const Properties = () => {
               </div>
             )}
           </Form.Item>
-           <Form.Item
+            <Form.Item
                 name="amenities"
                 label="Amenities"
                 rules={[
@@ -410,6 +435,17 @@ const Properties = () => {
                   <Option value="laundry">Laundry</Option>
                 </Select>
               </Form.Item>
+                <Form.Item
+    name="status"
+    label="Status"
+    rules={[{ required: true, message: "Please select the status!" }]}
+  >
+    <Select placeholder="Select status">
+      <Option value="Sold">Sold</Option>
+      <Option value="Not Sold">Not Sold</Option>
+      <Option value="Pending">Pending</Option>
+    </Select>
+  </Form.Item>
           <Form.Item
             name="description"
             label="Description"
