@@ -36,50 +36,49 @@ const Properties = () => {
   const [properties, setProperties] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [editingProperty, setEditingProperty] = useState(null);
-  const [loading,setLoading]=useState(false)
+  const [loading, setLoading] = useState(false);
 
-const fetchProperties = async () => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem("token");
+  const fetchProperties = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
-    if (!token) {
-      message.error("Please login as admin to fetch properties");
+      if (!token) {
+        message.error("Please login as admin to fetch properties");
+        setLoading(false);
+        return;
+      }
+
+      const response = await axiosInstance.get(
+        `${baseURL}/api/property/allProperties?all=true`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!response || !response.data) {
+        message.error("No response from server");
+        return;
+      }
+
+      console.log("API Response:", response.data);
+
+      if (response.data.success) {
+        setProperties(response.data.properties);
+      } else {
+        message.error(response.data.message || "Failed to fetch properties");
+      }
+    } catch (err) {
+      console.error("Error fetching properties:", err);
+      if (err?.response?.status === 401) {
+        message.error("Session expired. Please log in again.");
+      } else {
+        message.error("An error occurred while fetching properties");
+      }
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const response = await axiosInstance.get(`${baseURL}/api/property/allProperties`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response || !response.data) {
-      message.error("No response from server");
-      return;
-    }
-
-    console.log("API Response:", response.data);
-
-    if (response.data.success) {
-      setProperties(response.data.properties);
-    } else {
-      message.error(response.data.message || "Failed to fetch properties");
-    }
-  } catch (err) {
-    console.error("Error fetching properties:", err);
-    if (err?.response?.status === 401) {
-      message.error("Session expired. Please log in again.");
-      
-    } else {
-      message.error("An error occurred while fetching properties");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
+  };
 
   useEffect(() => {
     fetchProperties();
@@ -91,36 +90,36 @@ const fetchProperties = async () => {
       toast.error("You must be logged in as an owner");
       return;
     }
-  
+
     try {
       let uploadedFileUrls = [];
-  
+
       if (selectedFiles.length > 0) {
         const formData = new FormData();
         selectedFiles.forEach((file) => {
           formData.append("images", file.originFileObj);
         });
-  
+
         const uploadResponse = await axiosInstance.post(
           `${baseURL}/api/uploadFile/upload`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-  
+
         const fileUrls = uploadResponse?.data?.fileUrls;
         if (!fileUrls || !Array.isArray(fileUrls)) {
           message.error("File upload failed");
           return;
         }
-  
+
         uploadedFileUrls = fileUrls;
         values.images = uploadedFileUrls;
       } else if (editingProperty) {
         values.images = editingProperty.images;
       }
-  
+
       let response;
-  
+
       if (editingProperty) {
         response = await axiosInstance.put(
           `${baseURL}/api/property/updateProperty/${editingProperty._id}`,
@@ -134,27 +133,30 @@ const fetchProperties = async () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
-  
+
       if (response.data.success) {
-        toast.success(editingProperty ? "Property updated!" : "Property added!");
+        toast.success(
+          editingProperty ? "Property updated!" : "Property added!"
+        );
         setIsModalVisible(false);
         form.resetFields();
         setSelectedFiles([]);
         setEditingProperty(null);
         fetchProperties();
       } else {
-     
-        if (response.data.message === "Please add a new property, this property is already listed") {
+        if (
+          response.data.message ===
+          "Please add a new property, this property is already listed"
+        ) {
           toast.error(response.data.message);
         } else {
-          toast.error(response.data.message );
+          toast.error(response.data.message);
         }
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message ||  "An error occurred");
+      toast.error(error?.response?.data?.message || "An error occurred");
     }
   };
-  
 
   const handleFileChange = ({ fileList }) => {
     if (fileList.length > 5) {
@@ -196,7 +198,7 @@ const fetchProperties = async () => {
       render: (images) =>
         images && images.length > 0 ? (
           <img
-          src={`${baseURL}${images[0]}`}
+            src={`${baseURL}${images[0]}`}
             alt="Property"
             style={{
               width: 80,
@@ -266,150 +268,167 @@ const fetchProperties = async () => {
   ];
 
   return (
-    <div>{loading?(<Loader/>):(
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
-      <Layout>
-        <Header collapsed={collapsed} setCollapsed={setCollapsed} />
-        <Content className="m-4">
-          <div className="p-6 bg-white rounded shadow">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Card title="Total Properties" bordered={false}>
-                  {properties.length}
-                </Card>
-              </Col>
-              <Col span={12}>
-                <Card title="Active Sessions" bordered={false}>
-                  0
-                </Card>
-              </Col>
-            </Row>
-            <div className="mt-6 flex justify-end">
-              <Button
-                type="primary"
-                onClick={() => {
-                  setIsModalVisible(true);
-                  form.resetFields();
-                  setSelectedFiles([]);
-                  setEditingProperty(null);
-                }}
-              >
-                Add Property
-              </Button>
-            </div>
-            <Table
-              columns={columns}
-              dataSource={properties}
-              rowKey="_id"
-              className="mt-6"
-              pagination={false}
-            />
-          </div>
-        </Content>
-        <Footer className="text-center">Properties Overview ©2025</Footer>
-      </Layout>
-
-      <Modal
-        title={editingProperty ? "Edit Property" : "Add New Property"}
-        open={isModalVisible}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-          setSelectedFiles([]);
-          setEditingProperty(null);
-        }}
-        footer={null}
-      >
-        <Form layout="vertical" form={form} onFinish={handleAddOrUpdateProperty}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="title"
-                label="Property Title"
-                rules={[{ required: true, message: "Please input the title!" }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="location"
-                label="Location"
-                rules={[{ required: true, message: "Please input the location!" }]}
-              >
-                <Input />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="price"
-                label="Price"
-                rules={[{ required: true, message: "Please input the price!" }]}
-              >
-                <Input type="number" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="type"
-                label="Type"
-                rules={[{ required: true, message: "Please select type!" }]}
-              >
-                <Select placeholder="Select Type">
-                  <Option value="apartment">Apartment</Option>
-                  <Option value="villa">Villa</Option>
-                  <Option value="familyhouse">Family House</Option>
-                  <Option value="rooms">Rooms</Option>
-                    <Option value="pg">PG</Option>
-                    <Option value="flats">Flats</Option>
-                    <Option value="officespaces">Office Spaces</Option>
-                    <Option value="plot">Plot</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item label="Upload Files">
-            <Upload
-              fileList={selectedFiles}
-              beforeUpload={() => false}
-              onChange={handleFileChange}
-              showUploadList={false}
-              multiple={true}
-            >
-              <Button icon={<UploadOutlined />}>Select Files (Max-5)</Button>
-            </Upload>
-            {selectedFiles.length > 0 && (
-              <div className="mt-4 grid grid-cols-5 gap-4">
-                {selectedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="relative w-24 h-24 bg-gray-100 border rounded-md overflow-hidden"
+    <div>
+      {loading ? (
+        <Loader />
+      ) : (
+        <Layout style={{ minHeight: "100vh" }}>
+          <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+          <Layout>
+            <Header collapsed={collapsed} setCollapsed={setCollapsed} />
+            <Content className="m-4">
+              <div className="p-6 bg-white rounded shadow">
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Card title="Total Properties" bordered={false}>
+                      {properties.length}
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card title="Active Sessions" bordered={false}>
+                      0
+                    </Card>
+                  </Col>
+                </Row>
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setIsModalVisible(true);
+                      form.resetFields();
+                      setSelectedFiles([]);
+                      setEditingProperty(null);
+                    }}
                   >
-                    <img
-                      src={URL.createObjectURL(file.originFileObj)}
-                      alt={`preview-${index}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <div
-                      className="absolute top-0 right-0 bg-red-500 text-white text-xs py-1/2 px-1 cursor-pointer rounded-full"
-                      onClick={() => {
-                        const newFileList = selectedFiles.filter((_, i) => i !== index);
-                        setSelectedFiles(newFileList);
-                      }}
-                    >
-                      X
-                    </div>
-                  </div>
-                ))}
+                    Add Property
+                  </Button>
+                </div>
+                <Table
+                  columns={columns}
+                  dataSource={properties}
+                  rowKey="_id"
+                  className="mt-6"
+                  pagination={false}
+                />
               </div>
-            )}
-          </Form.Item>
-            <Form.Item
+            </Content>
+            <Footer className="text-center">Properties Overview ©2025</Footer>
+          </Layout>
+
+          <Modal
+            title={editingProperty ? "Edit Property" : "Add New Property"}
+            open={isModalVisible}
+            onCancel={() => {
+              setIsModalVisible(false);
+              form.resetFields();
+              setSelectedFiles([]);
+              setEditingProperty(null);
+            }}
+            footer={null}
+          >
+            <Form
+              layout="vertical"
+              form={form}
+              onFinish={handleAddOrUpdateProperty}
+            >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="title"
+                    label="Property Title"
+                    rules={[
+                      { required: true, message: "Please input the title!" },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="location"
+                    label="Location"
+                    rules={[
+                      { required: true, message: "Please input the location!" },
+                    ]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="price"
+                    label="Price"
+                    rules={[
+                      { required: true, message: "Please input the price!" },
+                    ]}
+                  >
+                    <Input type="number" />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="type"
+                    label="Type"
+                    rules={[{ required: true, message: "Please select type!" }]}
+                  >
+                    <Select placeholder="Select Type">
+                      <Option value="apartment">Apartment</Option>
+                      <Option value="villa">Villa</Option>
+                      <Option value="familyhouse">Family House</Option>
+                      <Option value="rooms">Rooms</Option>
+                      <Option value="pg">PG</Option>
+                      <Option value="flats">Flats</Option>
+                      <Option value="officespaces">Office Spaces</Option>
+                      <Option value="plot">Plot</Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item label="Upload Files">
+                <Upload
+                  fileList={selectedFiles}
+                  beforeUpload={() => false}
+                  onChange={handleFileChange}
+                  showUploadList={false}
+                  multiple={true}
+                >
+                  <Button icon={<UploadOutlined />}>
+                    Select Files (Max-5)
+                  </Button>
+                </Upload>
+                {selectedFiles.length > 0 && (
+                  <div className="mt-4 grid grid-cols-5 gap-4">
+                    {selectedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="relative w-24 h-24 bg-gray-100 border rounded-md overflow-hidden"
+                      >
+                        <img
+                          src={URL.createObjectURL(file.originFileObj)}
+                          alt={`preview-${index}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div
+                          className="absolute top-0 right-0 bg-red-500 text-white text-xs py-1/2 px-1 cursor-pointer rounded-full"
+                          onClick={() => {
+                            const newFileList = selectedFiles.filter(
+                              (_, i) => i !== index
+                            );
+                            setSelectedFiles(newFileList);
+                          }}
+                        >
+                          X
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Form.Item>
+              <Form.Item
                 name="amenities"
                 label="Amenities"
                 rules={[
@@ -435,37 +454,42 @@ const fetchProperties = async () => {
                   <Option value="laundry">Laundry</Option>
                 </Select>
               </Form.Item>
-                <Form.Item
-    name="status"
-    label="Status"
-    rules={[{ required: true, message: "Please select the status!" }]}
-  >
-    <Select placeholder="Select status">
-      <Option value="Sold">Sold</Option>
-      <Option value="Not Sold">Not Sold</Option>
-      <Option value="Pending">Pending</Option>
-    </Select>
-  </Form.Item>
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: "Please input the description!" }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
+              <Form.Item
+                name="status"
+                label="Status"
+                rules={[
+                  { required: true, message: "Please select the status!" },
+                ]}
+              >
+                <Select placeholder="Select status">
+                  <Option value="Sold">Sold</Option>
+                  <Option value="Not Sold">Not Sold</Option>
+                  <Option value="Pending">Pending</Option>
+                </Select>
+              </Form.Item>
+              <Form.Item
+                name="description"
+                label="Description"
+                rules={[
+                  { required: true, message: "Please input the description!" },
+                ]}
+              >
+                <Input.TextArea rows={3} />
+              </Form.Item>
 
-          <Form.Item>
-            <div className="flex justify-end">
-              <Button type="primary" htmlType="submit">
-                {editingProperty ? "Update Property" : "Add Property"}
-              </Button>
-            </div>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <ToastContainer/>
-    </Layout>
-    )}</div>
+              <Form.Item>
+                <div className="flex justify-end">
+                  <Button type="primary" htmlType="submit">
+                    {editingProperty ? "Update Property" : "Add Property"}
+                  </Button>
+                </div>
+              </Form.Item>
+            </Form>
+          </Modal>
+          <ToastContainer />
+        </Layout>
+      )}
+    </div>
   );
 };
 

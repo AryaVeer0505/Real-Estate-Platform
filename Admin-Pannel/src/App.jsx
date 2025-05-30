@@ -7,6 +7,7 @@ import Users from './Pages/Users'
 import Login from './Pages/Login'
 import Appointments from './Pages/Appointments'
 import Orders from './Pages/Orders'
+import ForgotPassword from './Pages/ForgotPassword'
 const App = () => {
   return (
     <div>
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/dashboard/properties" element={<Properties />} />
         <Route path="/dashboard/appointments" element={<Appointments />} />
         <Route path="/dashboard/orders" element={<Orders />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
         <Route path='*' element={<NotFound/>}></Route>
       </Routes>
     </div>

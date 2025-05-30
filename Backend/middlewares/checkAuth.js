@@ -31,7 +31,7 @@ const checkAuth = (req, res, next) => {
 };
 
 const generateToken = (userData) => {
-  return jwt.sign(userData, secretKey, { expiresIn: "1h" });
+  return jwt.sign(userData, secretKey, { expiresIn: "7d" });
 };
 
 module.exports = { checkAuth, generateToken };

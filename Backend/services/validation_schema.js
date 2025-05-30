@@ -17,12 +17,12 @@ const loginValidation = Joi.object({
 
 const addUservalidation = Joi.object({
   username: Joi.string().required(),
-  number: Joi.number().required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-    confirmPassword:Joi.string().required(),
-    role: Joi.string().valid('user', 'owner',"admin").required(),
-})
+  email: Joi.string().email().required(),
+  number: Joi.string().required(),
+  password: Joi.string().min(3).required(),
+  confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+  role: Joi.string().valid('user', 'owner', 'admin').required()
+});
 const propertyValidation = Joi.object({
   title: Joi.string().min(3).max(100).required(),
   location: Joi.string().min(2).max(100).required(),

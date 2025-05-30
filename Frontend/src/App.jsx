@@ -8,7 +8,7 @@ import About from './Pages/About.jsx';
 import Navbar from './Components/Navbar.jsx';
 import Footer from './Components/Footer.jsx';
 import Property from './Pages/Property.jsx';
-import ChangePassword from './Pages/ChangePassword.jsx';
+import ForgotPassword from './Pages/ForgotPassword.jsx';
 import AddProperty from './Pages/AddProperty.jsx';
 import NotFound from './Components/NotFound.jsx';
 import OwnerDashboard from './Pages/OwnerDashboard.jsx';
@@ -32,7 +32,7 @@ const App = () => {
         <Route path="/about" element={<About />} />
         <Route path="/property/:id" element={<Property />} />
         <Route path="/addProperty" element={<AddProperty />} />
-        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/forgotPassword/:role" element={<ForgotPassword />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/myBookings" element={<MyBookings />} />
         <Route path="/favorites" element={<Favorites />} />

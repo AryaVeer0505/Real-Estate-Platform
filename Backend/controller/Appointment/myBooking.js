@@ -6,8 +6,13 @@ const myBooking = async (req, res) => {
     console.log("req.user:", req.user);
 
     const userId = req.user._id;
+    const userType = req.user.userType || (req.user.googleId ? "GoogleUser" : "User");
 
-    const bookings = await Appointment.find({ userId: userId }).populate("propertyId");
+    const bookings = await Appointment.find({
+      userId,
+      userType,
+    }).populate("propertyId");
+
     console.log("Found bookings:", bookings);
 
     res.status(200).json({ success: true, bookings });

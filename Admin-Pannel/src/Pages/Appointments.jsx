@@ -18,6 +18,7 @@ import Header from "../Components/Header";
 import { baseURL } from "../../config.js";
 import axiosInstance from "../../axiosInnstance.js";
 import Loader from "../Components/Loader";
+import dayjs from "dayjs";
 
 const { Content, Footer } = Layout;
 const { Option } = Select;
@@ -57,7 +58,11 @@ const Appointments = () => {
             username: appointment.username || "N/A",
             email: appointment.email || "N/A",
             title: appointment.title || "N/A",
-            date: new Date(appointment.appointmentDate).toLocaleDateString(),
+            dateTime: dayjs(appointment.appointmentDate).format(
+              "YYYY-MM-DD HH:mm"
+            ),
+            date: dayjs(appointment.appointmentDate).format("YYYY-MM-DD"),
+            time: dayjs(appointment.appointmentDate).format("HH:mm"),
             status: appointment.status,
           })
         );
@@ -77,42 +82,58 @@ const Appointments = () => {
     fetchAppointments();
   }, []);
 
-  // Open modal to edit appointment status
   const openEditModal = (record) => {
     setEditingAppointment(record);
-    form.setFieldsValue({ status: record.status });
+    form.setFieldsValue({
+      status: record.status.toLowerCase(),
+    });
     setIsModalVisible(true);
   };
+  const statusOptions = [
+    { value: "pending", label: "Pending" },
+    { value: "confirmed", label: "Confirmed" },
+    { value: "cancelled", label: "Cancelled" },
+  ];
 
-  // Handle update appointment status
   const handleUpdateStatus = async (values) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      message.error("You must be logged in to update appointment");
-      return;
-    }
-    try {
-      const response = await axiosInstance.put(
-        `${baseURL}/api/appointment/update/${editingAppointment._id}`,
-        { status: values.status },
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  const token = localStorage.getItem("token");
+  if (!token) {
+    message.error("You must be logged in to update appointment");
+    return;
+  }
+
+  try {
+    const response = await axiosInstance.put(
+      `${baseURL}/api/appointment/update/${editingAppointment._id}`,
+      { 
+        status: values.status // Make sure this matches backend expectations
+        // Add other required fields if needed
+      },
+      {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      );
-
-      if (response.data.success) {
-        message.success("Appointment updated successfully");
-        setIsModalVisible(false);
-        setEditingAppointment(null);
-        fetchAppointments();
-      } else {
-        message.error(response.data.message || "Failed to update appointment");
       }
-    } catch (error) {
-      message.error("An error occurred while updating appointment");
-    }
-  };
+    );
 
+    if (response.data.success) {
+      message.success("Appointment status updated successfully");
+      setIsModalVisible(false);
+      setEditingAppointment(null);
+      fetchAppointments();
+    } else {
+      message.error(response.data.message || "Failed to update appointment");
+    }
+  } catch (error) {
+    console.error("Update error:", error);
+    const errorMessage = error.response?.data?.message || 
+                        error.response?.data?.error ||
+                        error.message ||
+                        "An error occurred while updating appointment";
+    message.error(errorMessage);
+  }
+};
   const handleDeleteAppointment = async (appointmentId) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -142,6 +163,13 @@ const Appointments = () => {
     { title: "Email", dataIndex: "email", key: "email" },
     { title: "Property Title", dataIndex: "title", key: "title" },
     { title: "Date", dataIndex: "date", key: "date" },
+    {
+      title: "Time",
+      dataIndex: "time",
+      key: "time",
+      sorter: (a, b) =>
+        dayjs(a.time, "HH:mm").unix() - dayjs(b.time, "HH:mm").unix(),
+    },
     {
       title: "Status",
       dataIndex: "status",
@@ -206,7 +234,6 @@ const Appointments = () => {
             </Content>
             <Footer className="text-center">Appointments Overview ©2025</Footer>
           </Layout>
-
           <Modal
             title="Update Appointment Status"
             visible={isModalVisible}
@@ -217,16 +244,25 @@ const Appointments = () => {
             }}
             footer={null}
           >
-            <Form form={form} layout="vertical" onFinish={handleUpdateStatus}>
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleUpdateStatus}
+              initialValues={{
+                status: editingAppointment?.status?.toLowerCase(),
+              }}
+            >
               <Form.Item
                 name="status"
                 label="Status"
                 rules={[{ required: true, message: "Please select a status" }]}
               >
                 <Select placeholder="Select status">
-                  <Option value="Pending">Pending</Option>
-                  <Option value="Confirmed">Confirmed</Option>
-                  <Option value="Cancelled">Cancelled</Option>
+                  {statusOptions.map((option) => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Option>
+                  ))}
                 </Select>
               </Form.Item>
 

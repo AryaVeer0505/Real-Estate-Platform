@@ -3,59 +3,75 @@ const { addUservalidation } = require("../../services/validation_schema");
 const sendEmailForAddUser = require("../../services/sendEmailForAddUser");
 const bcrypt = require("bcryptjs");
 
-const addUser = async (req, res, next) => {
+const addUser = async (req, res) => {
   try {
-    const validatedData = await addUservalidation.validateAsync(req.body);
-    const { username, number, email, password,confirmPassword, role } = validatedData;
+    // Validate with custom messages
+    const { error, value } = addUservalidation.validate(req.body, {
+      abortEarly: false
+    });
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      console.log("User already registered");
-      return res.status(400).json({
-        message: "User already registered. Please login.",
-        isNewUser: false,
-      });
-    }
-    if (password !== confirmPassword) {
+    if (error) {
       return res.status(400).json({
         success: false,
-        message: "Passwords do not match",
+        message: "Validation failed",
+        errors: error.details.map(d => d.message)
       });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({
-      username,
-      number,
-      email,
-      password: hashedPassword,
-      role,
+    // Check for existing user
+    const existingUser = await User.findOne({ 
+      $or: [
+        { email: value.email },
+        { username: value.username }
+      ]
     });
 
-    await newUser.save();
-
-    try {
-      await sendEmailForAddUser(email, password);
-    } catch (emailErr) {
-      console.error("Email sending failed:", emailErr.message);
-     
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: existingUser.email === value.email 
+          ? "Email already in use" 
+          : "Username already taken"
+      });
     }
 
-    console.log("User Registered Successfully");
-    return res.status(201).json({
-      message: "User registered successfully 🎉",
-      success: true,
-      isNewUser: true,
+    // Create user
+    const user = new User({
+      username: value.username,
+      email: value.email,
+      number: value.number,
+      password: await bcrypt.hash(value.password, 10),
+      role: value.role
     });
-  
 
-  } catch (error) {
-    console.error("Registration Error:", error.message);
+    await user.save();
+
+    // Send email - make sure this is AFTER user is saved
+    try {
+      await sendEmailForAddUser(value.email, value.username);
+      console.log("Welcome email sent successfully");
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+      // Don't fail the whole request if email fails
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
+
+  } catch (err) {
+    console.error("Server error:", err);
     return res.status(500).json({
-      message: "Failed to register user",
-      error: error.message,
+      success: false,
+      message: "Internal server error"
     });
   }
 };
-
 module.exports = addUser;

@@ -8,16 +8,21 @@ const appointmentSchema = new mongoose.Schema({
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
     required: true,
+    refPath: "userType",
   },
+  userType: {
+    type: String,
+    enum: ["User", "GoogleUser"],
+  },
+
   appointmentDate: {
     type: Date,
     required: true,
   },
-    status: {
+  status: {
     type: String,
-    enum: ["pending", "confirmed"],
+    enum: ["pending", "confirmed","cancelled"],
     default: "pending",
   },
 });

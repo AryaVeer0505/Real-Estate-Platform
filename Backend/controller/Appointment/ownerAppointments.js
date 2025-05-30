@@ -8,7 +8,7 @@ const appointmentsForOwner = async (req, res) => {
     console.log("appointmentsForOwner API hit");
 
     const ownerId = req.user._id;
-    const ownerProperties = await Property.find({ owner: ownerId }).select("_id");
+    const ownerProperties = await Property.find({ ownerId: ownerId }).select("_id");
     const propertyIds = ownerProperties.map((property) => property._id);
 
     const appointments = await Appointment.find({ propertyId: { $in: propertyIds } })

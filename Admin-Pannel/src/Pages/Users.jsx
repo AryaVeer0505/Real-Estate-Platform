@@ -82,26 +82,40 @@ const Users = () => {
   const handleAddUser = async (values) => {
     try {
       setAddLoading(true);
-      // Map username to name to keep backend consistent
+
       const payload = {
-        ...values,
-        name: values.username,
+        username: values.username.trim(),
+        number: values.number.trim(),
+        email: values.email.toLowerCase().trim(),
+        password: values.password,
+        confirmPassword: values.confirmPassword,
+        role: values.role,
       };
-      await axiosInstance.post(`${baseURL}/api/auth/addUser`, payload);
-      message.success("User added successfully!");
-      toast.success("User Added", { position: "top-right" });
-      setIsModalVisible(false);
-      form.resetFields();
-      fetchUsers();
-      setAddLoading(false);
+
+      const response = await axiosInstance.post(
+        `${baseURL}/api/auth/addUser`,
+        payload
+      );
+      console.log("Payload being sent:", payload);
+
+      if (response?.status === 201 && response.data?.success) {
+        message.success("User added successfully!");
+        setIsModalVisible(false);
+        form.resetFields();
+        fetchUsers();
+      } else {
+        message.error("Something went wrong while adding user");
+      }
     } catch (error) {
-      console.error("Add user error:", error.response?.data || error.message);
-      message.error(error.response?.data?.message || "Failed to add user");
-      toast.error("Failed to add new user", { position: "top-right" });
+      console.error("Add user error:", error);
+      if (error.response) {
+        console.error("Backend response:", error.response.data);
+      }
+      message.error("Failed to add user");
+    } finally {
       setAddLoading(false);
     }
   };
-
   const handleUpdateUser = async (values) => {
     try {
       setEditLoading(true);
@@ -126,18 +140,19 @@ const Users = () => {
     }
   };
 
-const handleDelete = async (userId) => {
-  try {
-    const res = await axiosInstance.delete(`${baseURL}/api/auth/deleteUser/${userId}`);
-    message.success(res.data.message || "User deleted successfully!");
-    toast.success("User Deleted", { position: "top-right" });
-    await fetchUsers(); 
-  } catch (error) {
-    const errorMsg = error.response?.data?.message || "Failed to delete user";
-    message.error(errorMsg);
-  }
-};
-
+  const handleDelete = async (userId) => {
+    try {
+      const res = await axiosInstance.delete(
+        `${baseURL}/api/auth/deleteUser/${userId}`
+      );
+      message.success(res.data.message || "User deleted successfully!");
+      toast.success("User Deleted", { position: "top-right" });
+      await fetchUsers();
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "Failed to delete user";
+      message.error(errorMsg);
+    }
+  };
 
   const filteredUsers = users.filter((user) =>
     (user.name || user.username || "")
@@ -179,31 +194,29 @@ const handleDelete = async (userId) => {
         </Tag>
       ),
     },
-   {
-  title: "Actions",
-  key: "actions",
-  render: (_, record) => (
-    <>
-      {!record.googleId && (
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => showEditModal(record)}
-          className="mr-2"
-        />
-      )}
-     <Popconfirm
-  title="Are you sure to delete this user?"
-  onConfirm={() => handleDelete(record._id)}
-  okText="Yes"
-  cancelText="No"
->
-  <Button icon={<DeleteOutlined />} danger />
-</Popconfirm>
-
-    </>
-  ),
-},
-
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <>
+          {!record.googleId && (
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => showEditModal(record)}
+              className="mr-2"
+            />
+          )}
+          <Popconfirm
+            title="Are you sure to delete this user?"
+            onConfirm={() => handleDelete(record._id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -290,7 +303,10 @@ const handleDelete = async (userId) => {
                       label="Email"
                       rules={[
                         { required: true },
-                        { type: "email", message: "Please enter a valid email" },
+                        {
+                          type: "email",
+                          message: "Please enter a valid email",
+                        },
                       ]}
                     >
                       <Input />
@@ -309,7 +325,10 @@ const handleDelete = async (userId) => {
                       label="Confirm Password"
                       dependencies={["password"]}
                       rules={[
-                        { required: true, message: "Please confirm your password" },
+                        {
+                          required: true,
+                          message: "Please confirm your password",
+                        },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
                             if (!value || getFieldValue("password") === value) {
@@ -381,7 +400,10 @@ const handleDelete = async (userId) => {
                       label="Email"
                       rules={[
                         { required: true },
-                        { type: "email", message: "Please enter a valid email" },
+                        {
+                          type: "email",
+                          message: "Please enter a valid email",
+                        },
                       ]}
                     >
                       <Input />

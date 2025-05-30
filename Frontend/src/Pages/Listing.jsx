@@ -44,7 +44,7 @@ const Listing = () => {
 
       if (response.status === 200) {
         return response.data.favorites
-          .filter((fav) => fav && fav._id) 
+          .filter((fav) => fav && fav._id)
           .map((fav) => fav._id);
       }
     } catch (error) {
@@ -66,7 +66,7 @@ const Listing = () => {
         }
 
         const propertiesResponse = await axiosInstance.get(
-          `/api/property/allProperties?all=true`,
+          "/api/property/allProperties?all=true",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -78,6 +78,9 @@ const Listing = () => {
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("An error occurred while fetching data.");
+        toast.error("Please Login to see Property Listing", {
+          position: "top-center",
+        });
       } finally {
         setLoading(false);
       }
@@ -162,19 +165,18 @@ const Listing = () => {
   };
 
   const filteredProperties = properties
-  .filter((property) => property.status?.toLowerCase() !== "pending") // ✅ filter out "pending"
-  .filter((property) => {
-    const matchesSearch =
-      property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.location.toLowerCase().includes(searchTerm.toLowerCase());
+    .filter((property) => property.status?.toLowerCase() !== "pending") // ✅ filter out "pending"
+    .filter((property) => {
+      const matchesSearch =
+        property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        property.location.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory =
-      selectedCategory === "All" ||
-      property.type.toLowerCase() === selectedCategory.toLowerCase();
+      const matchesCategory =
+        selectedCategory === "All" ||
+        property.type.toLowerCase() === selectedCategory.toLowerCase();
 
-    return matchesSearch && matchesCategory;
-  });
-
+      return matchesSearch && matchesCategory;
+    });
 
   return (
     <div>

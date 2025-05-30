@@ -18,7 +18,7 @@ const fetchProperties = async (req, res) => {
       properties = await Property.find({});
     } else if (userRole === "owner") {
    
-      properties = await Property.find({ owner: userId });
+      properties = await Property.find({ ownerId: userId });
     } else {
       
       properties = []; 
@@ -32,3 +32,5 @@ const fetchProperties = async (req, res) => {
 };
 
 module.exports = fetchProperties;
+
+

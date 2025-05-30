@@ -1,29 +1,28 @@
 const Appointment = require("../../models/appointment.model.js");
 
+// Example backend endpoint (Node.js/Express)
 const deleteAppointment = async (req, res) => {
   try {
-    const appointmentId = req.params.id;
-    const userId = req.user._id;
-    const userRole = req.user.role; 
-
-    let filter = { _id: appointmentId };
-
-    if (userRole !== "admin") {
-      filter.userId = userId;
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
     }
 
-    const deletedAppointment = await Appointment.findOneAndDelete(filter);
-
-    if (!deletedAppointment) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Appointment not found or unauthorized" });
-    }
-
-    res.status(200).json({ success: true, message: "Appointment deleted successfully" });
+    res.status(200).json({
+      success: true,
+      message: "Appointment deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting appointment:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete appointment",
+      error: error.message,
+    });
   }
 };
 

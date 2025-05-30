@@ -40,7 +40,6 @@ const AdminDashboard = () => {
           message.error("Failed to load properties data.");
         }
 
-        // Fetch appointments (change URL to your actual API)
         const appointmentsRes = await axiosInstance.get(`${baseURL}/api/appointment/allAppointments`);
         console.log("Appointments Data:", appointmentsRes.data);
         if (Array.isArray(appointmentsRes.data.appointments)) {

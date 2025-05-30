@@ -25,10 +25,7 @@ const UserDropdown = ({ onLogout, userRole }) => (
     <NavLink to="/myBookings" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <ShoppingCartOutlined /> My Appointments
     </NavLink>
-     <NavLink to="/change-password" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
-      <UserOutlined /> Change Password
-    </NavLink>
-
+  
     <button onClick={onLogout} className=" w-full text-left px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <LogoutOutlined /> Logout
     </button>

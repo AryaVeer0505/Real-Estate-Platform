@@ -34,7 +34,8 @@ const property = async (req, res, next) => {
       images,
       amenities,
       status:status || "Pending",
-      owner: req.user._id,
+      ownerId: req.user._id,
+      ownerType: req.user.googleId ?'GoogleUser' : 'User',
     });
 
     await newProperty.save();

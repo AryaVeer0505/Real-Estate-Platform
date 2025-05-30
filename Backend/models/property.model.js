@@ -1,33 +1,42 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model } = require("mongoose");
 
 const propertySchema = new Schema(
   {
     title: {
       type: String,
-      required: [true, 'Property title is required'],
+      required: [true, "Property title is required"],
       trim: true,
     },
     location: {
       type: String,
-      required: [true, 'Location is required'],
+      required: [true, "Location is required"],
     },
     price: {
       type: Number,
-      required: [true, 'Price is required'],
+      required: [true, "Price is required"],
     },
     type: {
       type: String,
-      enum: ['apartment', 'villa', 'familyhouse', 'rooms', 'pg', 'flats', 'officespaces', 'plot'],
-      required: [true, 'Property type is required'],
+      enum: [
+        "apartment",
+        "villa",
+        "familyhouse",
+        "rooms",
+        "pg",
+        "flats",
+        "officespaces",
+        "plot",
+      ],
+      required: [true, "Property type is required"],
     },
     description: {
       type: String,
-      required: [true, 'Description is required'],
+      required: [true, "Description is required"],
     },
     status: {
       type: String,
-      enum: ['Sold', 'Not Sold', 'Pending'],
-      default: 'Pending',
+      enum: ["Sold", "Not Sold", "Pending"],
+      default: "Pending",
     },
     images: {
       type: [String],
@@ -35,17 +44,32 @@ const propertySchema = new Schema(
     },
     amenities: {
       type: [String],
-      enum: ['parking', 'gym', 'pool', 'wifi', 'security', 'garden', 'elevator', 'ac', 'laundry'],
+      enum: [
+        "parking",
+        "gym",
+        "pool",
+        "wifi",
+        "security",
+        "garden",
+        "elevator",
+        "ac",
+        "laundry",
+      ],
       default: [],
       required: true,
     },
-    owner: {
-  type: Schema.Types.ObjectId,
-  ref: 'User', 
-  required: true,
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+          refPath: "ownerType", 
+    },
+ownerType: {
+  type: String,
+  enum: ["User", "GoogleUser"], // ✅ Correct
 },
+
   },
   { timestamps: true }
 );
 
-module.exports = model('Property', propertySchema, 'properties');
+module.exports = model("Property", propertySchema, "properties");

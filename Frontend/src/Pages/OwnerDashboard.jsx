@@ -8,7 +8,6 @@ import {
   Modal,
   Form,
   Input,
-  InputNumber,
   Select,
   Upload,
   message,
@@ -28,6 +27,7 @@ import { baseURL } from "../../config.js";
 import axiosInstance from "../../axiosInnstance.js";
 import Loader from "../Components/Loader.jsx";
 import { ToastContainer, toast } from "react-toastify";
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 const { Sider, Content } = Layout;
@@ -60,24 +60,32 @@ const OwnerDashboard = () => {
       message.error("Failed to fetch properties");
     }
   };
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      const response = await axiosInstance.get(
-        `${baseURL}/api/appointment/ownerAppointments`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setAppointments(response.data.appointments || []);
-      setLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch appointments:", error);
-      message.error("Failed to fetch appointments");
-      setLoading(false);
-    }
-  };
+ const fetchAppointments = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    const response = await axiosInstance.get(
+      `${baseURL}/api/appointment/ownerAppointments`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    
+    // Format appointments with separate date and time
+    const formattedAppointments = response.data.appointments?.map(appointment => ({
+      ...appointment,
+      date: dayjs(appointment.appointmentDate).format('YYYY-MM-DD'),
+      time: dayjs(appointment.appointmentDate).format('HH:mm')
+    })) || [];
+    
+    setAppointments(formattedAppointments);
+    setLoading(false);
+  } catch (error) {
+    console.error("Failed to fetch appointments:", error);
+    message.error("Failed to fetch appointments");
+    setLoading(false);
+  }
+};
   useEffect(() => {
     if (activeTab === "properties") {
       fetchProperties();
@@ -231,24 +239,35 @@ const OwnerDashboard = () => {
   };
 
   const handleDeleteAppointment = async (id) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await axiosInstance.delete(
-        `${baseURL}/api/appointment/delete/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+  const token = localStorage.getItem("token");
+  try {
+    setLoading(true); // Add loading state
+    const response = await axiosInstance.delete(
+      `${baseURL}/api/appointment/delete/${id}`,
+      {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      );
-      if (response.data.success) {
-        message.success("Appointment deleted successfully");
-        fetchAppointments();
-      } else {
-        message.error("Failed to delete appointment");
       }
-    } catch (error) {
-      message.error("Error deleting appointment");
+    );
+    
+    if (response.data.success) {
+      message.success("Appointment deleted successfully");
+      await fetchAppointments(); // Wait for refresh
+    } else {
+      message.error(response.data.message || "Failed to delete appointment");
     }
-  };
+  } catch (error) {
+    console.error("Delete appointment error:", error);
+    message.error(
+      error.response?.data?.message || 
+      "Error deleting appointment. Please try again."
+    );
+  } finally {
+    setLoading(false); 
+  }
+};
 
   const columns = [
     {
@@ -370,6 +389,14 @@ const OwnerDashboard = () => {
                     title: "Date",
                     dataIndex: "appointmentDate",
                     render: (date) => new Date(date).toLocaleDateString(),
+                  },
+                  {
+                    title: "Time",
+                    dataIndex: "time",
+                    key: "time",
+                    sorter: (a, b) =>
+                      dayjs(a.time, "HH:mm").unix() -
+                      dayjs(b.time, "HH:mm").unix(),
                   },
 
                   {

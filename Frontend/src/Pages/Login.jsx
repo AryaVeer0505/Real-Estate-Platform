@@ -178,7 +178,7 @@ const Login = () => {
                 <div className="flex justify-between items-center">
                   <Checkbox className="text-gray-600">Remember me</Checkbox>
                   <NavLink
-                    to="/forgot-password"
+                    to={`/forgotPassword/${role}`}
                     className="text-green-600 hover:underline"
                   >
                     Forgot password?

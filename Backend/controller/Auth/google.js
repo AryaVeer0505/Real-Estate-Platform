@@ -50,18 +50,22 @@ const googleRegister = async (req, res) => {
     } else {
       user.googleId = googleId;
       user.image = picture;
-      // user.role = role;
       await user.save();
       console.log("Existing user updated:", user);
     }
 
-    const token = jwt.sign(
-      { _id: user._id, email: user.email, role: user.role },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1h" }
-    );
+   const token = jwt.sign(
+  {
+    _id: user._id,
+    email: user.email,
+    role: user.role,
+    userType: "GoogleUser", 
+  },
+  process.env.ACCESS_TOKEN_SECRET,
+  { expiresIn: "7d" }
+);
 
-    // Send response
+
     res.status(200).json({
       message: "Registered successfully",
       user: {
