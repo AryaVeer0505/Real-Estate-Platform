@@ -9,7 +9,7 @@ backend.use(express.json());
 
 backend.use(
   cors({
-    origin: "*",
+    origin: "https://real-estate-platform-frontend.onrender.com",
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   })
 );
