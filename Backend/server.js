@@ -7,9 +7,15 @@ const createDefaultAdmin = require("./controller/Auth/DefaultAdmin.js");
 const path = require("path");
 backend.use(express.json());
 
+const allowedOrigins = [
+  'https://real-estate-platform-admin.onrender.com',
+  'https://real-estate-platform-frontend.onrender.com', 
+  'http://localhost:5173'         
+];
+
 backend.use(
   cors({
-    origin: "https://real-estate-platform-frontend.onrender.com",
+    origin: allowedOrigins,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   })
 );
