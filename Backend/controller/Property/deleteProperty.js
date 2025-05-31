@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const Property = require("../../models/property.model.js");
+const Property = require("../../Models/property.model.js");
 
 const deleteProperty = async (req, res) => {
   try {

@@ -1,5 +1,5 @@
 require("dotenv").config();
-const User = require('../../models/User.model.js')
+const User = require('../../Models/User.model.js')
 const { loginValidation } = require("../../services/validation_schema.js");
 const bcrypt = require("bcrypt");
 const {generateToken}=require("../../middlewares/checkAuth.js")

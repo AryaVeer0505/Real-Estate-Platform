@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Appointment = require("../../models/appointment.model.js");
+const Appointment = require("../../Models/appointment.model.js");
 
 const checkBooking = async (req, res) => {
   try {

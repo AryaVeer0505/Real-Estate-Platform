@@ -1,7 +1,7 @@
-const Appointment = require("../../models/appointment.model.js");
-const User = require("../../models/User.model.js");
-const GoogleUser = require("../../models/google.models.js");
-const Property = require("../../models/property.model.js");
+const Appointment = require("../../Models/appointment.model.js");
+const User = require("../../Models/User.model.js");
+const GoogleUser = require("../../Models/google.models.js");
+const Property = require("../../Models/property.model.js");
 
 const allAppointments = async (req, res) => {
   try {

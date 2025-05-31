@@ -1,4 +1,4 @@
-const User=require("../../models/User.model.js")
+const User=require("../../Models/User.model.js")
 const bcrypt=require("bcryptjs")
 const createDefaultAdmin = async () => {
   const existingAdmin = await User.findOne({ role: "admin" });

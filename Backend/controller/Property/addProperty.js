@@ -1,4 +1,4 @@
-const Property = require("../../models/property.model.js");
+const Property = require("../../Models/property.model.js");
 const { propertyValidation } = require("../../services/validation_schema.js");
 
 const property = async (req, res, next) => {
