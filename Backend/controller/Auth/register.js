@@ -56,14 +56,11 @@ const register = async (req, res, next) => {
     await newUser.save();
     console.log("User registered successfully");
 
-  //  const userType = userTypeMap[newUser.role] || "User";
-
 const payload = {
   id: newUser._id,
   username: newUser.username,
   email: newUser.email,
   role: newUser.role,
-  // userType,
 };
 
 

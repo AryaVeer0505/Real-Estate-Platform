@@ -4,13 +4,6 @@ const { loginValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
 const {generateToken}=require("../../middlewares/checkAuth.js")
 
-// const userTypeMap = {
-//   user: "User",
-//   owner: "User", // Same model
-//   admin: "User", // Or separate model if you have one
-// };
-
-
 const login = async (req, res, next) => {
   try {
     const loginResponse = await loginValidation.validateAsync(req.body);
@@ -40,14 +33,12 @@ const login = async (req, res, next) => {
       });
     }
 
-  // const userType = userTypeMap[existingUser.role] || "User";
-
     const payload = {
       _id: existingUser._id,
       username: existingUser.username,
       email: existingUser.email,
       role: existingUser.role,
-      // userType,  
+  
     };
 
 
