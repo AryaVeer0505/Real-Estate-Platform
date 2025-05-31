@@ -13,6 +13,10 @@ backend.use(
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   })
 );
+backend.get('/', (req, res) => {
+  res.send('Welcome to the Real Estate Platform API');
+});
+
 
 backend.use(routes);
 
