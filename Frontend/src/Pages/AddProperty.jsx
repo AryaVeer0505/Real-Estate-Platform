@@ -101,12 +101,11 @@ const AddProperty = () => {
         message.success("Files uploaded successfully");
       }
 
-      // ✅ Add this logic
       values.listingType = listingType;
       values.images = uploadedFileUrls;
 
       if (listingType === "Rent") {
-        values.price = values.rentAmount; // Required for backend schema
+        values.price = values.rentAmount;
       }
 
       const response = await axiosInstance.post(
