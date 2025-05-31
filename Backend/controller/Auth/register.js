@@ -1,5 +1,5 @@
-const User = require("../../models/User.model");
-const { registrationValidation } = require("../../services/validation_schema");
+const User = require("../../models/User.model.js");
+const { registrationValidation } = require("../../services/validation_schema.js");
 const bcrypt = require("bcrypt");
 
 const register = async (req, res, next) => {
