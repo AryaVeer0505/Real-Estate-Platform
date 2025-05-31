@@ -1,5 +1,5 @@
 // controller/Cart/RemoveFromCart.js
-const Cart = require("../../models/Cart.model");
+const Cart = require("../../models/cart.model");
 
 const removeFromCart = async (req, res) => {
   try {
