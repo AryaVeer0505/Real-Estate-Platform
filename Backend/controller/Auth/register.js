@@ -2,13 +2,6 @@ const User = require("../../models/User.model");
 const { registrationValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
 
-// const userTypeMap = {
-//   user: "User",
-//   owner: "User", // Same model
-//   admin: "User", // Or separate model if you have one
-// };
-
-
 const register = async (req, res, next) => {
   try {
    
