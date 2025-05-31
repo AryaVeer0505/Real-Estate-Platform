@@ -3,7 +3,7 @@ const routes = require("./routes");
 const express = require("express");
 const backend = express();
 const cors = require("cors");
-const createDefaultAdmin = require("./controller/auth/DefaultAdmin.js");
+const createDefaultAdmin = require("./controller/Auth/DefaultAdmin.js");
 const path = require("path");
 backend.use(express.json());
 
