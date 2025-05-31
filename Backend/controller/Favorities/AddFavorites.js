@@ -1,5 +1,5 @@
-const Favorite = require('../../Models/favorite.model.js');
-const Property = require('../../Models/property.model.js');
+const Favorite = require('../../models/favorite.model.js');
+const Property = require('../../models/property.model.js');
 
 const AddToFavorites = async (req, res) => {
   const { propertyId } = req.body;

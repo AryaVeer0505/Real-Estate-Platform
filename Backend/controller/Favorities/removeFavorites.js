@@ -1,4 +1,4 @@
-const Favorite = require('../../Models/favorite.model'); 
+const Favorite = require('../../models/favorite.model'); 
 
 const RemoveFromFavorites = async (req, res) => {
   try {

@@ -1,4 +1,4 @@
-const Property = require("../../Models/property.model");
+const Property = require("../../models/property.model");
 
 const fetchProperties = async (req, res) => {
   try {

@@ -1,5 +1,5 @@
-const User = require("../../Models/User.model.js");
-const GoogleUser = require("../../Models/google.models.js");
+const User = require("../../models/User.model.js");
+const GoogleUser = require("../../models/google.models.js");
 
 const getAllUsers = async (req, res) => {
   try {

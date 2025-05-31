@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const Property = require("../../Models/property.model.js");
+const Property = require("../../models/property.model.js");
 
 const fetchRelatedProperties = async (req, res) => {
   try {

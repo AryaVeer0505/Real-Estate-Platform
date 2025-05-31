@@ -1,4 +1,4 @@
-const Appointment = require("../../Models/appointment.model.js");
+const Appointment = require("../../models/appointment.model.js");
 
 // Example backend endpoint (Node.js/Express)
 const deleteAppointment = async (req, res) => {
