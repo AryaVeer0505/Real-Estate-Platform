@@ -10,6 +10,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import Loader from '../Components/Loader';
 import Newsletter from '../Components/NewsLetter';
 import 'react-toastify/dist/ReactToastify.css';
+import { baseURL } from '../../config.js';
 
 const Contact = () => {
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ const Contact = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5001/api/contact_us/contact',values);
+      const response = await axios.post(`${baseURL}/api/contact_us/contact`,values);
       console.log('Form Submitted:', response.data);
       toast.success('Your message has been sent successfully!', {
         position: 'top-center',
