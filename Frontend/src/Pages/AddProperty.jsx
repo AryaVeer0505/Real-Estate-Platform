@@ -11,6 +11,11 @@ import Loader from "../Components/Loader.jsx";
 const MySwal = withReactContent(Swal);
 const { Option } = Select;
 
+const propertyTypes = {
+  Buy: ["apartment", "villa", "familyhouse", "flats", "officespaces", "plot"],
+  Rent: ["apartment", "flats", "rooms", "pg"],
+};
+
 const AddProperty = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
@@ -18,43 +23,47 @@ const AddProperty = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [imageUrl, setImageUrl] = useState("");
 
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  const rawUserType = localStorage.getItem("userType");
+  const [listingType, setListingType] = useState("Buy");
+  const [propertyOptions, setPropertyOptions] = useState(propertyTypes["Buy"]);
 
-  console.log("Token:", token);
-  console.log("User Type (Raw):", rawUserType);
-  
-  // Check the type and value of userType
-  const userType = rawUserType ? rawUserType.trim().toLowerCase() : null;
-  console.log("User Type (Processed):", userType);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const rawUserType = localStorage.getItem("userType");
 
-  if (!token) {
-    console.log("Redirecting to owner login due to missing token...");
-    MySwal.fire({
-      title: "Access Denied",
-      text: "You must be logged in as an owner to access this page.",
-      icon: "warning",
-      confirmButtonText: "Go to Login",
-    }).then(() => {
-      navigate("/login/owner");
+    const userType = rawUserType ? rawUserType.trim().toLowerCase() : null;
+
+    if (!token) {
+      MySwal.fire({
+        title: "Access Denied",
+        text: "You must be logged in as an owner to access this page.",
+        icon: "warning",
+        confirmButtonText: "Go to Login",
+      }).then(() => {
+        navigate("/login/owner");
+      });
+      return;
+    }
+
+    if (userType !== "owner") {
+      MySwal.fire({
+        title: "Access Denied",
+        text: "Only property owners can access this page.",
+        icon: "warning",
+        confirmButtonText: "Back to Home",
+      }).then(() => {
+        navigate("/");
+      });
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    setPropertyOptions(propertyTypes[listingType]);
+    form.setFieldsValue({
+      type: undefined,
+      rentAmount: undefined,
+      price: undefined,
     });
-    return;
-  }
-
-  if (userType !== "owner") {
-    console.log("Redirecting to home due to user type:", userType);
-    MySwal.fire({
-      title: "Access Denied",
-      text: "Only property owners can access this page.",
-      icon: "warning",
-      confirmButtonText: "Back to Home",
-    }).then(() => {
-      navigate("/");
-    });
-  }
-}, [navigate]);
-
+  }, [listingType, form]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -92,7 +101,13 @@ useEffect(() => {
         message.success("Files uploaded successfully");
       }
 
+      // ✅ Add this logic
+      values.listingType = listingType;
       values.images = uploadedFileUrls;
+
+      if (listingType === "Rent") {
+        values.price = values.rentAmount; // Required for backend schema
+      }
 
       const response = await axiosInstance.post(
         `${baseURL}/api/property/addProperty`,
@@ -151,9 +166,26 @@ useEffect(() => {
       ) : (
         <div className="flex justify-center items-center min-h-screen mt-5 mb-10">
           <div className="bg-white p-8 shadow-2xl rounded-lg w-full max-w-2xl border border-gray-200">
-            <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
+            <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
               Add Property
             </h2>
+
+            <div className="flex justify-center gap-4 mb-6">
+              <Button
+                type={listingType === "Buy" ? "primary" : "default"}
+                className="px-6"
+                onClick={() => setListingType("Buy")}
+              >
+                Sell
+              </Button>
+              <Button
+                type={listingType === "Rent" ? "primary" : "default"}
+                className="px-6"
+                onClick={() => setListingType("Rent")}
+              >
+                Rent
+              </Button>
+            </div>
 
             <Form
               form={form}
@@ -187,17 +219,21 @@ useEffect(() => {
                   <Input placeholder="e.g. Shimla" />
                 </Form.Item>
               </div>
+
               <div className="flex gap-4">
-                <Form.Item
-                  name="price"
-                  label="Price"
-                  className="flex-1"
-                  rules={[
-                    { required: true, message: "Please input the price!" },
-                  ]}
-                >
-                  <Input placeholder="e.g. ₹65,00,000" />
-                </Form.Item>
+                {/* Price only for Buy */}
+                {listingType === "Buy" && (
+                  <Form.Item
+                    name="price"
+                    label="Price"
+                    className="flex-1"
+                    rules={[
+                      { required: true, message: "Please input the price!" },
+                    ]}
+                  >
+                    <Input placeholder="e.g. ₹65,00,000" />
+                  </Form.Item>
+                )}
 
                 <Form.Item
                   name="type"
@@ -210,18 +246,32 @@ useEffect(() => {
                     },
                   ]}
                 >
-                  <Select placeholder="Select Property Type">
-                    <Option value="apartment">Apartment</Option>
-                    <Option value="villa">Villa</Option>
-                    <Option value="familyhouse">Family House</Option>
-                    <Option value="rooms">Rooms</Option>
-                    <Option value="pg">PG</Option>
-                    <Option value="flats">Flats</Option>
-                    <Option value="officespaces">Office Spaces</Option>
-                    <Option value="plot">Plot</Option>
+                  <Select placeholder={`Select ${listingType} Property Type`}>
+                    {propertyOptions.map((type) => (
+                      <Option key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </div>
+
+              {/* Rent amount only for Rent */}
+              {listingType === "Rent" && (
+                <Form.Item
+                  name="rentAmount"
+                  label="Amount per Month (₹)"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter rent amount!",
+                    },
+                  ]}
+                >
+                  <Input placeholder="e.g. ₹12,000" />
+                </Form.Item>
+              )}
+
               <Form.Item label="Upload Files">
                 <Upload
                   fileList={selectedFiles}
@@ -262,7 +312,7 @@ useEffect(() => {
                   </div>
                 )}
               </Form.Item>
-           
+
               <Form.Item
                 name="amenities"
                 label="Amenities"
@@ -287,28 +337,36 @@ useEffect(() => {
                   <Option value="elevator">Elevator</Option>
                   <Option value="ac">Air Conditioning</Option>
                   <Option value="laundry">Laundry</Option>
+                  <Option value="water purifier">Water purifier</Option>
+                  <Option value="geyser">Geyser</Option>
+                  <Option value="refrigerator">Refrigerator</Option>
+                  <Option value="cooler">Cooler</Option>
+                  <Option value="fan">Fan</Option>
+                  <Option value="beds">Beds</Option>
                 </Select>
               </Form.Item>
+
               <Form.Item
                 name="description"
-                label="Description"
+                label="Property Description"
                 rules={[
-                  { required: true, message: "Please input the description!" },
+                  {
+                    required: true,
+                    message: "Please enter the property description!",
+                  },
                 ]}
               >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Write a short description..."
-                />
+                <Input.TextArea rows={5} placeholder="Describe your property" />
               </Form.Item>
+
               <Form.Item>
                 <Button
-                  block
                   type="primary"
                   htmlType="submit"
-                  className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition"
+                  className="w-full"
+                  disabled={loading}
                 >
-                  Submit Property
+                  Add Property
                 </Button>
               </Form.Item>
             </Form>

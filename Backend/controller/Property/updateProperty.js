@@ -5,7 +5,17 @@ const Property = require('../../models/property.model.js');
 const updateProperty = async (req, res) => {
   try {
     const property_id = req.params.id;
-    const { title, location, price, type, description, amenities, status } = req.body;
+    const {
+      title,
+      location,
+      price,
+      type,
+      description,
+      amenities,
+      status,
+      listingType,
+      rentAmount,
+    } = req.body;
 
     let images = req.body.images || [];
 
@@ -13,7 +23,7 @@ const updateProperty = async (req, res) => {
       const oldProperty = await Property.findById(property_id);
       if (oldProperty && oldProperty.images) {
         oldProperty.images.forEach((filename) => {
-          const filePath = path.join(__dirname, "../../public/upload", filename);
+          const filePath = path.join(__dirname, "../../public/upload", path.basename(filename));
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
           }
@@ -24,7 +34,18 @@ const updateProperty = async (req, res) => {
 
     const updatedProperty = await Property.findByIdAndUpdate(
       property_id,
-      { title, location, price, type, images, description, amenities, status }, // ✅ include status here
+      {
+        title,
+        location,
+        price,
+        type,
+        images,
+        description,
+        amenities,
+        status,
+        listingType,
+        rentAmount,
+      },
       { new: true }
     );
 
@@ -38,6 +59,7 @@ const updateProperty = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to edit",
+      error: error.message,
     });
   }
 };

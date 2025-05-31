@@ -10,21 +10,21 @@ import {
 } from "@ant-design/icons";
 import Loader from "../Components/Loader.jsx";
 
-const categories = [
+const buyCategories = [
   "All",
-  "rooms",
-  "pg",
   "apartment",
-  "flats",
-  "plot",
-  "officespaces",
   "villa",
   "familyhouse",
+  "flats",
+  "officespaces",
+  "plot",
 ];
+const rentCategories = ["All", "apartment", "flats", "rooms", "pg"];
 
 const Listing = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [listingType, setListingType] = useState("Buy");
   const [properties, setProperties] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -149,7 +149,7 @@ const Listing = () => {
         return;
       }
 
-      const response = await axiosInstance.post(
+      await axiosInstance.post(
         "/api/cart/add",
         { propertyId },
         {
@@ -165,7 +165,7 @@ const Listing = () => {
   };
 
   const filteredProperties = properties
-    .filter((property) => property.status?.toLowerCase() !== "pending") // ✅ filter out "pending"
+    .filter((property) => property.status?.toLowerCase() !== "pending")
     .filter((property) => {
       const matchesSearch =
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -175,7 +175,10 @@ const Listing = () => {
         selectedCategory === "All" ||
         property.type.toLowerCase() === selectedCategory.toLowerCase();
 
-      return matchesSearch && matchesCategory;
+      const matchesListingType =
+        property.listingType?.toLowerCase() === listingType.toLowerCase();
+
+      return matchesSearch && matchesCategory && matchesListingType;
     });
 
   return (
@@ -185,28 +188,61 @@ const Listing = () => {
         <Loader />
       ) : (
         <div className="flex flex-col md:flex-row w-full min-h-screen bg-gray-100 p-6 gap-6">
+          {/* Sidebar */}
           <div className="md:w-1/4 w-full bg-white p-5 rounded-lg shadow sticky top-6 h-max">
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={() => {
+                  setListingType("Buy");
+                  setSelectedCategory("All");
+                }}
+                className={`px-4 py-2 rounded-lg ${
+                  listingType === "Buy"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                Buy
+              </button>
+              <button
+                onClick={() => {
+                  setListingType("Rent");
+                  setSelectedCategory("All");
+                }}
+                className={`px-4 py-2 rounded-lg ${
+                  listingType === "Rent"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                Rent
+              </button>
+            </div>
+
             <h3 className="text-xl font-semibold mb-4 text-gray-800">
               Categories
             </h3>
             <ul className="space-y-3">
-              {categories.map((cat) => (
-                <li key={cat}>
-                  <button
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`w-full text-left px-3 py-2 rounded-lg transition ${
-                      selectedCategory === cat
-                        ? "bg-green-500 text-white"
-                        : "hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </button>
-                </li>
-              ))}
+              {(listingType === "Buy" ? buyCategories : rentCategories).map(
+                (cat) => (
+                  <li key={cat}>
+                    <button
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition ${
+                        selectedCategory === cat
+                          ? "bg-green-500 text-white"
+                          : "hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </button>
+                  </li>
+                )
+              )}
             </ul>
           </div>
 
+          {/* Main Content */}
           <div className="md:w-3/4 w-full">
             <div className="mb-6 flex flex-col ">
               <div className="flex items-center gap-2">

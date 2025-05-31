@@ -3,9 +3,22 @@ const { propertyValidation } = require("../../services/validation_schema.js");
 
 const property = async (req, res, next) => {
   try {
+
     const propertyData = await propertyValidation.validateAsync(req.body);
-    const { title, location, price, type, description, images, amenities,status } =
-      propertyData;
+
+    const {
+      title,
+      location,
+      price,
+      type,
+      description,
+      images,
+      amenities,
+      listingType,
+      rentAmount,
+      status = "Pending",
+    } = propertyData;
+
     const ownerId = req.user._id;
 
     const normalizedType = type.toLowerCase();
@@ -23,7 +36,8 @@ const property = async (req, res, next) => {
         message: "Please add a new property, this property is already listed",
       });
     }
-   console.log("Logged in user ID:", req.user?._id);
+
+    console.log("Logged in user ID:", ownerId);
 
     const newProperty = new Property({
       title,
@@ -33,9 +47,11 @@ const property = async (req, res, next) => {
       description,
       images,
       amenities,
-      status:status || "Pending",
-      ownerId: req.user._id,
-      ownerType: req.user.googleId ?'GoogleUser' : 'User',
+      status,
+      ownerId,
+      ownerType: req.user.googleId ? "GoogleUser" : "User",
+      listingType,
+      rentAmount,
     });
 
     await newProperty.save();
@@ -48,7 +64,7 @@ const property = async (req, res, next) => {
       property: newProperty,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     next(error);
   }
 };

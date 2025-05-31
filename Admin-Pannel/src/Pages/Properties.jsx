@@ -1,3 +1,5 @@
+// Properties.jsx
+
 import React, { useState, useEffect } from "react";
 import {
   Layout,
@@ -37,12 +39,12 @@ const Properties = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [editingProperty, setEditingProperty] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [listingType, setListingType] = useState("Buy");
 
   const fetchProperties = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-
       if (!token) {
         message.error("Please login as admin to fetch properties");
         setLoading(false);
@@ -56,25 +58,14 @@ const Properties = () => {
         }
       );
 
-      if (!response || !response.data) {
-        message.error("No response from server");
-        return;
-      }
-
-      console.log("API Response:", response.data);
-
-      if (response.data.success) {
+      if (response?.data?.success) {
         setProperties(response.data.properties);
       } else {
         message.error(response.data.message || "Failed to fetch properties");
       }
     } catch (err) {
       console.error("Error fetching properties:", err);
-      if (err?.response?.status === 401) {
-        message.error("Session expired. Please log in again.");
-      } else {
-        message.error("An error occurred while fetching properties");
-      }
+      message.error("An error occurred while fetching properties");
     } finally {
       setLoading(false);
     }
@@ -96,9 +87,9 @@ const Properties = () => {
 
       if (selectedFiles.length > 0) {
         const formData = new FormData();
-        selectedFiles.forEach((file) => {
-          formData.append("images", file.originFileObj);
-        });
+        selectedFiles.forEach((file) =>
+          formData.append("images", file.originFileObj)
+        );
 
         const uploadResponse = await axiosInstance.post(
           `${baseURL}/api/uploadFile/upload`,
@@ -107,7 +98,7 @@ const Properties = () => {
         );
 
         const fileUrls = uploadResponse?.data?.fileUrls;
-        if (!fileUrls || !Array.isArray(fileUrls)) {
+        if (!Array.isArray(fileUrls)) {
           message.error("File upload failed");
           return;
         }
@@ -119,7 +110,6 @@ const Properties = () => {
       }
 
       let response;
-
       if (editingProperty) {
         response = await axiosInstance.put(
           `${baseURL}/api/property/updateProperty/${editingProperty._id}`,
@@ -144,14 +134,7 @@ const Properties = () => {
         setEditingProperty(null);
         fetchProperties();
       } else {
-        if (
-          response.data.message ===
-          "Please add a new property, this property is already listed"
-        ) {
-          toast.error(response.data.message);
-        } else {
-          toast.error(response.data.message);
-        }
+        toast.error(response.data.message || "Operation failed");
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || "An error occurred");
@@ -194,9 +177,8 @@ const Properties = () => {
     {
       title: "Image",
       dataIndex: "images",
-      key: "image",
       render: (images) =>
-        images && images.length > 0 ? (
+        images?.length ? (
           <img
             src={`${baseURL}${images[0]}`}
             alt="Property"
@@ -211,19 +193,33 @@ const Properties = () => {
           <span>No Image</span>
         ),
     },
-    { title: "Title", dataIndex: "title", key: "title" },
-    { title: "Location", dataIndex: "location", key: "location" },
+    { title: "Title", dataIndex: "title" },
+    { title: "Location", dataIndex: "location" },
     {
       title: "Price",
       dataIndex: "price",
-      key: "price",
       render: (price) => `₹${price}`,
     },
-    { title: "Type", dataIndex: "type", key: "type" },
+    { title: "Type", dataIndex: "type" },
+    {
+  title: "Listing Type",
+  dataIndex: "listingType",
+  render: (type) => (
+    <span
+      style={{
+        color: type === "Buy" ? "#1890ff" : "#fa541c",
+        fontWeight: 500,
+        textTransform: "capitalize",
+      }}
+    >
+      {type}
+    </span>
+  ),
+},
+
     {
       title: "Status",
       dataIndex: "status",
-      key: "status",
       render: (status) => (
         <span
           style={{
@@ -241,7 +237,6 @@ const Properties = () => {
     },
     {
       title: "Actions",
-      key: "actions",
       render: (_, record) => (
         <>
           <Button
@@ -267,6 +262,14 @@ const Properties = () => {
     },
   ];
 
+  const notSoldProperties = properties.filter(
+    (prop) => prop.status === "Not Sold"
+  );
+  const pendingProperties = properties.filter(
+    (prop) => prop.status === "Pending"
+  );
+  const soldProperties = properties.filter((prop) => prop.status === "Sold");
+
   return (
     <div>
       {loading ? (
@@ -280,16 +283,13 @@ const Properties = () => {
               <div className="p-6 bg-white rounded shadow">
                 <Row gutter={16}>
                   <Col span={12}>
-                    <Card title="Total Properties" bordered={false}>
-                      {properties.length}
-                    </Card>
+                    <Card title="Total Properties">{properties.length}</Card>
                   </Col>
                   <Col span={12}>
-                    <Card title="Active Sessions" bordered={false}>
-                      0
-                    </Card>
+                    <Card title="Active Sessions">0</Card>
                   </Col>
                 </Row>
+
                 <div className="mt-6 flex justify-end">
                   <Button
                     type="primary"
@@ -303,18 +303,43 @@ const Properties = () => {
                     Add Property
                   </Button>
                 </div>
-                <Table
-                  columns={columns}
-                  dataSource={properties}
-                  rowKey="_id"
-                  className="mt-6"
-                  pagination={false}
-                />
+
+                <div className="mt-6">
+                  <h2 className="text-xl font-semibold mt-6 mb-2">
+                    Not Sold Properties
+                  </h2>
+                  <Table
+                    columns={columns}
+                    dataSource={notSoldProperties}
+                    rowKey="_id"
+                    pagination={false}
+                  />
+
+                  <h2 className="text-xl font-semibold mt-6 mb-2">
+                    Pending Properties
+                  </h2>
+                  <Table
+                    columns={columns}
+                    dataSource={pendingProperties}
+                    rowKey="_id"
+                    pagination={false}
+                  />
+                  <h2 className="text-xl font-semibold mb-2">
+                    Sold Properties
+                  </h2>
+                  <Table
+                    columns={columns}
+                    dataSource={soldProperties}
+                    rowKey="_id"
+                    pagination={false}
+                  />
+                </div>
               </div>
             </Content>
             <Footer className="text-center">Properties Overview ©2025</Footer>
           </Layout>
 
+          {/* Modal Form */}
           <Modal
             title={editingProperty ? "Edit Property" : "Add New Property"}
             open={isModalVisible}
@@ -323,13 +348,37 @@ const Properties = () => {
               form.resetFields();
               setSelectedFiles([]);
               setEditingProperty(null);
+              setListingType("Buy"); // reset to default
             }}
             footer={null}
           >
+            {/* Listing Type Switch */}
+            <div className="flex justify-center gap-4 mb-4">
+              <Button
+                type={listingType === "Buy" ? "primary" : "default"}
+                onClick={() => setListingType("Buy")}
+              >
+                Sell
+              </Button>
+              <Button
+                type={listingType === "Rent" ? "primary" : "default"}
+                onClick={() => setListingType("Rent")}
+              >
+                Rent
+              </Button>
+            </div>
+
             <Form
               layout="vertical"
               form={form}
-              onFinish={handleAddOrUpdateProperty}
+              onFinish={(values) => {
+                values.listingType = listingType;
+                if (listingType === "Rent") {
+                  values.price = values.rentAmount;
+                
+                }
+                handleAddOrUpdateProperty(values);
+              }}
             >
               <Row gutter={16}>
                 <Col span={12}>
@@ -359,10 +408,14 @@ const Properties = () => {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
-                    name="price"
-                    label="Price"
+                    name={listingType === "Rent" ? "rentAmount" : "price"}
+                    label={
+                      listingType === "Rent"
+                        ? "Amount per Month (₹)"
+                        : "Price (₹)"
+                    }
                     rules={[
-                      { required: true, message: "Please input the price!" },
+                      { required: true, message: "Please input the amount!" },
                     ]}
                   >
                     <Input type="number" />
@@ -375,14 +428,23 @@ const Properties = () => {
                     rules={[{ required: true, message: "Please select type!" }]}
                   >
                     <Select placeholder="Select Type">
-                      <Option value="apartment">Apartment</Option>
-                      <Option value="villa">Villa</Option>
-                      <Option value="familyhouse">Family House</Option>
-                      <Option value="rooms">Rooms</Option>
-                      <Option value="pg">PG</Option>
-                      <Option value="flats">Flats</Option>
-                      <Option value="officespaces">Office Spaces</Option>
-                      <Option value="plot">Plot</Option>
+                      {listingType === "Buy" ? (
+                        <>
+                          <Option value="apartment">Apartment</Option>
+                          <Option value="villa">Villa</Option>
+                          <Option value="familyhouse">Family House</Option>
+                          <Option value="flats">Flats</Option>
+                          <Option value="officespaces">Office Spaces</Option>
+                          <Option value="plot">Plot</Option>
+                        </>
+                      ) : (
+                        <>
+                          <Option value="apartment">Apartment</Option>
+                          <Option value="flats">Flats</Option>
+                          <Option value="rooms">Rooms</Option>
+                          <Option value="pg">PG</Option>
+                        </>
+                      )}
                     </Select>
                   </Form.Item>
                 </Col>
@@ -394,7 +456,7 @@ const Properties = () => {
                   beforeUpload={() => false}
                   onChange={handleFileChange}
                   showUploadList={false}
-                  multiple={true}
+                  multiple
                 >
                   <Button icon={<UploadOutlined />}>
                     Select Files (Max-5)
@@ -413,7 +475,7 @@ const Properties = () => {
                           className="w-full h-full object-cover"
                         />
                         <div
-                          className="absolute top-0 right-0 bg-red-500 text-white text-xs py-1/2 px-1 cursor-pointer rounded-full"
+                          className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 py-0.5 cursor-pointer rounded-full"
                           onClick={() => {
                             const newFileList = selectedFiles.filter(
                               (_, i) => i !== index
@@ -428,6 +490,7 @@ const Properties = () => {
                   </div>
                 )}
               </Form.Item>
+
               <Form.Item
                 name="amenities"
                 label="Amenities"
@@ -440,7 +503,7 @@ const Properties = () => {
               >
                 <Select
                   mode="multiple"
-                  placeholder="Select available amenities"
+                  placeholder="Select amenities"
                   allowClear
                 >
                   <Option value="parking">Parking</Option>
@@ -452,8 +515,15 @@ const Properties = () => {
                   <Option value="elevator">Elevator</Option>
                   <Option value="ac">Air Conditioning</Option>
                   <Option value="laundry">Laundry</Option>
+                  <Option value="water purifier">Water purifier</Option>
+                  <Option value="geyser">Geyser</Option>
+                  <Option value="refrigerator">Refrigerator</Option>
+                  <Option value="cooler">Cooler</Option>
+                  <Option value="fan">Fan</Option>
+                  <Option value="beds">Beds</Option>
                 </Select>
               </Form.Item>
+
               <Form.Item
                 name="status"
                 label="Status"
@@ -467,6 +537,7 @@ const Properties = () => {
                   <Option value="Pending">Pending</Option>
                 </Select>
               </Form.Item>
+
               <Form.Item
                 name="description"
                 label="Description"
@@ -486,6 +557,7 @@ const Properties = () => {
               </Form.Item>
             </Form>
           </Modal>
+
           <ToastContainer />
         </Layout>
       )}

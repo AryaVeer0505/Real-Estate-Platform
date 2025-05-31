@@ -27,7 +27,7 @@ import { baseURL } from "../../config.js";
 import axiosInstance from "../../axiosInnstance.js";
 import Loader from "../Components/Loader.jsx";
 import { ToastContainer, toast } from "react-toastify";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
 const { Option } = Select;
 const { Sider, Content } = Layout;
@@ -45,6 +45,7 @@ const OwnerDashboard = () => {
   const [isAppointmentModalVisible, setIsAppointmentModalVisible] =
     useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
+  const [listingType, setListingType] = useState("Buy");
 
   const fetchProperties = async () => {
     try {
@@ -60,32 +61,33 @@ const OwnerDashboard = () => {
       message.error("Failed to fetch properties");
     }
   };
- const fetchAppointments = async () => {
-  try {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    const response = await axiosInstance.get(
-      `${baseURL}/api/appointment/ownerAppointments`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    
-    // Format appointments with separate date and time
-    const formattedAppointments = response.data.appointments?.map(appointment => ({
-      ...appointment,
-      date: dayjs(appointment.appointmentDate).format('YYYY-MM-DD'),
-      time: dayjs(appointment.appointmentDate).format('HH:mm')
-    })) || [];
-    
-    setAppointments(formattedAppointments);
-    setLoading(false);
-  } catch (error) {
-    console.error("Failed to fetch appointments:", error);
-    message.error("Failed to fetch appointments");
-    setLoading(false);
-  }
-};
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.get(
+        `${baseURL}/api/appointment/ownerAppointments`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Format appointments with separate date and time
+      const formattedAppointments =
+        response.data.appointments?.map((appointment) => ({
+          ...appointment,
+          date: dayjs(appointment.appointmentDate).format("YYYY-MM-DD"),
+          time: dayjs(appointment.appointmentDate).format("HH:mm"),
+        })) || [];
+
+      setAppointments(formattedAppointments);
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+      message.error("Failed to fetch appointments");
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (activeTab === "properties") {
       fetchProperties();
@@ -239,35 +241,35 @@ const OwnerDashboard = () => {
   };
 
   const handleDeleteAppointment = async (id) => {
-  const token = localStorage.getItem("token");
-  try {
-    setLoading(true); // Add loading state
-    const response = await axiosInstance.delete(
-      `${baseURL}/api/appointment/delete/${id}`,
-      {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+    const token = localStorage.getItem("token");
+    try {
+      setLoading(true); // Add loading state
+      const response = await axiosInstance.delete(
+        `${baseURL}/api/appointment/delete/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
+
+      if (response.data.success) {
+        message.success("Appointment deleted successfully");
+        await fetchAppointments(); // Wait for refresh
+      } else {
+        message.error(response.data.message || "Failed to delete appointment");
       }
-    );
-    
-    if (response.data.success) {
-      message.success("Appointment deleted successfully");
-      await fetchAppointments(); // Wait for refresh
-    } else {
-      message.error(response.data.message || "Failed to delete appointment");
+    } catch (error) {
+      console.error("Delete appointment error:", error);
+      message.error(
+        error.response?.data?.message ||
+          "Error deleting appointment. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Delete appointment error:", error);
-    message.error(
-      error.response?.data?.message || 
-      "Error deleting appointment. Please try again."
-    );
-  } finally {
-    setLoading(false); 
-  }
-};
+  };
 
   const columns = [
     {
@@ -444,13 +446,36 @@ const OwnerDashboard = () => {
           form.resetFields();
           setSelectedFiles([]);
           setEditingProperty(null);
+          setListingType("Buy"); // reset to default
         }}
         footer={null}
       >
+        {/* Listing Type Switch */}
+        <div className="flex justify-center gap-4 mb-4">
+          <Button
+            type={listingType === "Buy" ? "primary" : "default"}
+            onClick={() => setListingType("Buy")}
+          >
+            Sell
+          </Button>
+          <Button
+            type={listingType === "Rent" ? "primary" : "default"}
+            onClick={() => setListingType("Rent")}
+          >
+            Rent
+          </Button>
+        </div>
+
         <Form
           layout="vertical"
           form={form}
-          onFinish={handleAddOrUpdateProperty}
+          onFinish={(values) => {
+            values.listingType = listingType;
+            if (listingType === "Rent") {
+              values.price = values.rentAmount;
+            }
+            handleAddOrUpdateProperty(values);
+          }}
         >
           <Row gutter={16}>
             <Col span={12}>
@@ -478,9 +503,13 @@ const OwnerDashboard = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="price"
-                label="Price"
-                rules={[{ required: true, message: "Please input the price!" }]}
+                name={listingType === "Rent" ? "rentAmount" : "price"}
+                label={
+                  listingType === "Rent" ? "Amount per Month (₹)" : "Price (₹)"
+                }
+                rules={[
+                  { required: true, message: "Please input the amount!" },
+                ]}
               >
                 <Input type="number" />
               </Form.Item>
@@ -492,14 +521,23 @@ const OwnerDashboard = () => {
                 rules={[{ required: true, message: "Please select type!" }]}
               >
                 <Select placeholder="Select Type">
-                  <Option value="apartment">Apartment</Option>
-                  <Option value="villa">Villa</Option>
-                  <Option value="familyhouse">Family House</Option>
-                  <Option value="rooms">Rooms</Option>
-                  <Option value="pg">PG</Option>
-                  <Option value="flats">Flats</Option>
-                  <Option value="officespaces">Office Spaces</Option>
-                  <Option value="plot">Plot</Option>
+                  {listingType === "Buy" ? (
+                    <>
+                      <Option value="apartment">Apartment</Option>
+                      <Option value="villa">Villa</Option>
+                      <Option value="familyhouse">Family House</Option>
+                      <Option value="flats">Flats</Option>
+                      <Option value="officespaces">Office Spaces</Option>
+                      <Option value="plot">Plot</Option>
+                    </>
+                  ) : (
+                    <>
+                      <Option value="apartment">Apartment</Option>
+                      <Option value="flats">Flats</Option>
+                      <Option value="rooms">Rooms</Option>
+                      <Option value="pg">PG</Option>
+                    </>
+                  )}
                 </Select>
               </Form.Item>
             </Col>
@@ -511,7 +549,7 @@ const OwnerDashboard = () => {
               beforeUpload={() => false}
               onChange={handleFileChange}
               showUploadList={false}
-              multiple={true}
+              multiple
             >
               <Button icon={<UploadOutlined />}>Select Files (Max-5)</Button>
             </Upload>
@@ -528,7 +566,7 @@ const OwnerDashboard = () => {
                       className="w-full h-full object-cover"
                     />
                     <div
-                      className="absolute top-0 right-0 bg-red-500 text-white text-xs py-1/2 px-1 cursor-pointer rounded-full"
+                      className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 py-0.5 cursor-pointer rounded-full"
                       onClick={() => {
                         const newFileList = selectedFiles.filter(
                           (_, i) => i !== index
@@ -543,6 +581,7 @@ const OwnerDashboard = () => {
               </div>
             )}
           </Form.Item>
+
           <Form.Item
             name="amenities"
             label="Amenities"
@@ -553,11 +592,7 @@ const OwnerDashboard = () => {
               },
             ]}
           >
-            <Select
-              mode="multiple"
-              placeholder="Select available amenities"
-              allowClear
-            >
+            <Select mode="multiple" placeholder="Select amenities" allowClear>
               <Option value="parking">Parking</Option>
               <Option value="gym">Gym</Option>
               <Option value="pool">Swimming Pool</Option>
@@ -567,8 +602,16 @@ const OwnerDashboard = () => {
               <Option value="elevator">Elevator</Option>
               <Option value="ac">Air Conditioning</Option>
               <Option value="laundry">Laundry</Option>
+              <Option value="water purifier">Water purifier</Option>
+              <Option value="geyser">Geyser</Option>
+              <Option value="refrigerator">Refrigerator</Option>
+              <Option value="cooler">Cooler</Option>
+              <Option value="fan">Fan</Option>
+              <Option value="beds">Beds</Option>
             </Select>
           </Form.Item>
+
+        
 
           <Form.Item
             name="description"

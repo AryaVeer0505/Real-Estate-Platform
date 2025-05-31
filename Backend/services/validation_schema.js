@@ -23,16 +23,29 @@ const addUservalidation = Joi.object({
   confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
   role: Joi.string().valid('user', 'owner', 'admin').required()
 });
+
+
 const propertyValidation = Joi.object({
   title: Joi.string().min(3).max(100).required(),
   location: Joi.string().min(2).max(100).required(),
   price: Joi.number().positive().required(),
   type: Joi.string()
-    .valid('apartment', 'villa', 'familyhouse', 'rooms', 'pg', 'flats', 'officespaces', 'plot')
+    .valid(
+      'apartment',
+      'villa',
+      'familyhouse',
+      'rooms',
+      'pg',
+      'flats',
+      'officespaces',
+      'plot'
+    )
     .required(),
   description: Joi.string().min(5).required(),
   images: Joi.array().items(Joi.string()).max(5),
-   status: Joi.string().valid("Sold", "Not Sold", "Pending").optional(),
+
+  status: Joi.string().valid("Sold", "Not Sold", "Pending").optional(),
+
   amenities: Joi.array()
     .items(
       Joi.string().valid(
@@ -44,12 +57,31 @@ const propertyValidation = Joi.object({
         'garden',
         'elevator',
         'ac',
-        'laundry'
+        'laundry',
+        'water purifier',
+        'geyser',
+        'refrigerator',
+        'cooler',
+        'fan',
+        'beds'
       )
     )
     .min(1)
-    .required()
+    .required(),
+
+  listingType: Joi.string().valid("Buy", "Rent").required(),
+
+  rentAmount: Joi.when("listingType", {
+    is: "Rent",
+    then: Joi.number().positive().required().messages({
+      'any.required': 'Rent amount is required when listing type is Rent',
+      'number.base': 'Rent amount must be a number',
+      'number.positive': 'Rent amount must be a positive value'
+    }),
+    otherwise: Joi.forbidden(), 
+  }),
 });
+
 
 
 

@@ -13,8 +13,11 @@ const propertySchema = new Schema(
     },
     price: {
       type: Number,
-      required: [true, "Price is required"],
+      required: function () {
+        return this.listingType === "Buy";
+      },
     },
+
     type: {
       type: String,
       enum: [
@@ -54,6 +57,12 @@ const propertySchema = new Schema(
         "elevator",
         "ac",
         "laundry",
+        "water purifier",
+        "geyser",
+        "refrigerator",
+        "cooler",
+        "fan",
+        "beds",
       ],
       default: [],
       required: true,
@@ -61,13 +70,23 @@ const propertySchema = new Schema(
     ownerId: {
       type: Schema.Types.ObjectId,
       required: true,
-          refPath: "ownerType", 
+      refPath: "ownerType",
     },
-ownerType: {
-  type: String,
-  enum: ["User", "GoogleUser"], // ✅ Correct
-},
-
+    ownerType: {
+      type: String,
+      enum: ["User", "GoogleUser"], // ✅ Correct
+    },
+    listingType: {
+      type: String,
+      enum: ["Buy", "Rent"],
+      required: true,
+    },
+    rentAmount: {
+      type: Number,
+      required: function () {
+        return this.listingType === "Rent";
+      },
+    },
   },
   { timestamps: true }
 );
