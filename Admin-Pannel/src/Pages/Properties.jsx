@@ -1,5 +1,3 @@
-// Properties.jsx
-
 import React, { useState, useEffect } from "react";
 import {
   Layout,
@@ -202,20 +200,20 @@ const Properties = () => {
     },
     { title: "Type", dataIndex: "type" },
     {
-  title: "Listing Type",
-  dataIndex: "listingType",
-  render: (type) => (
-    <span
-      style={{
-        color: type === "Buy" ? "#1890ff" : "#fa541c",
-        fontWeight: 500,
-        textTransform: "capitalize",
-      }}
-    >
-      {type}
-    </span>
-  ),
-},
+      title: "Listing Type",
+      dataIndex: "listingType",
+      render: (type) => (
+        <span
+          style={{
+            color: type === "Buy" ? "#1890ff" : "#fa541c",
+            fontWeight: 500,
+            textTransform: "capitalize",
+          }}
+        >
+          {type}
+        </span>
+      ),
+    },
 
     {
       title: "Status",
@@ -243,7 +241,12 @@ const Properties = () => {
             icon={<EditOutlined />}
             onClick={() => {
               setEditingProperty(record);
-              form.setFieldsValue(record);
+              form.setFieldsValue({
+                ...record,
+                rentAmount:
+                  record.listingType === "Rent" ? record.price : undefined,
+              });
+              setListingType(record.listingType || "Buy"); 
               setSelectedFiles([]);
               setIsModalVisible(true);
             }}
@@ -375,7 +378,6 @@ const Properties = () => {
                 values.listingType = listingType;
                 if (listingType === "Rent") {
                   values.price = values.rentAmount;
-                
                 }
                 handleAddOrUpdateProperty(values);
               }}

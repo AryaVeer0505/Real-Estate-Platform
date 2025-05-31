@@ -184,6 +184,7 @@ const OwnerDashboard = () => {
   const handleEdit = (record) => {
     setEditingProperty(record);
     form.setFieldsValue(record);
+    setListingType(record.listingType || "Buy");
     setIsModalVisible(true);
   };
 
@@ -243,7 +244,7 @@ const OwnerDashboard = () => {
   const handleDeleteAppointment = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      setLoading(true); // Add loading state
+      setLoading(true); 
       const response = await axiosInstance.delete(
         `${baseURL}/api/appointment/delete/${id}`,
         {
@@ -256,7 +257,7 @@ const OwnerDashboard = () => {
 
       if (response.data.success) {
         message.success("Appointment deleted successfully");
-        await fetchAppointments(); // Wait for refresh
+        await fetchAppointments(); 
       } else {
         message.error(response.data.message || "Failed to delete appointment");
       }
@@ -446,11 +447,11 @@ const OwnerDashboard = () => {
           form.resetFields();
           setSelectedFiles([]);
           setEditingProperty(null);
-          setListingType("Buy"); // reset to default
+          setListingType("Buy");
         }}
         footer={null}
       >
-        {/* Listing Type Switch */}
+        
         <div className="flex justify-center gap-4 mb-4">
           <Button
             type={listingType === "Buy" ? "primary" : "default"}
@@ -610,8 +611,6 @@ const OwnerDashboard = () => {
               <Option value="beds">Beds</Option>
             </Select>
           </Form.Item>
-
-        
 
           <Form.Item
             name="description"
