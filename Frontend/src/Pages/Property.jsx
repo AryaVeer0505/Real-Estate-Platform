@@ -62,7 +62,6 @@ const Property = () => {
       const loggedInUserId = user?._id;
       const loggedInUserType = user?.googleId ? "GoogleUser" : "User";
 
-      // Check if current user is the owner (regardless of auth type)
       const isOwnerCheck = loggedInUserId && ownerId && 
                          (ownerId.toString() === loggedInUserId.toString()) && 
                          (ownerType === loggedInUserType);
@@ -129,10 +128,9 @@ const Property = () => {
     }
 
     try {
-      // Parse the selected time
+
       const [hours, minutes] = appointmentTime.split(":").map(Number);
-      
-      // Create full ISO string with date and time
+
       const bookingDateTime = dayjs(appointmentDate)
         .set('hour', hours)
         .set('minute', minutes)
@@ -227,7 +225,7 @@ const Property = () => {
           </h1>
           <p className="text-lg text-gray-700">📍 {property.location}</p>
           <p className="text-2xl text-green-500 font-semibold">
-            💰 ${property.price}
+            💰 ₹{property.price}
           </p>
           <p className="text-md text-gray-600">🏠 {property.type}</p>
           <p className="text-gray-700">{property.description}</p>
@@ -331,7 +329,7 @@ const Property = () => {
                     {item.title}
                   </h3>
                   <p className="text-gray-600 text-sm">📍 {item.location}</p>
-                  <p className="text-green-500 font-bold">💰 ${item.price}</p>
+                  <p className="text-green-500 font-bold">💰 ₹{item.price}</p>
                   <p className="text-sm text-gray-500">{item.type}</p>
                   <a
                     href={`/property/${item._id}`}
