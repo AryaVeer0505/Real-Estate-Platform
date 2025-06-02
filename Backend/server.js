@@ -11,6 +11,7 @@ const allowedOrigins = [
   'https://real-estate-platform-admin.onrender.com',
   'https://real-estate-platform-frontend.onrender.com', 
   'https://real-estate-platform-frontend.vercel.app',
+  'https://real-estate-platform-admin.vercel.app/',
   'http://localhost:5173' ,        
   'http://localhost:5174'         
 ];
