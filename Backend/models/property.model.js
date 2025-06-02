@@ -39,7 +39,7 @@ const propertySchema = new Schema(
     status: {
       type: String,
       enum: ["Sold", "Not Sold", "Pending"],
-      default: "Pending",
+      default: "Not Sold",
     },
     images: {
       type: [String],
@@ -74,7 +74,7 @@ const propertySchema = new Schema(
     },
     ownerType: {
       type: String,
-      enum: ["User", "GoogleUser"], // ✅ Correct
+      enum: ["User", "GoogleUser"],
     },
     listingType: {
       type: String,
