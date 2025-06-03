@@ -33,12 +33,14 @@ axiosInstance.interceptors.request.use(
 // Response Interceptor 
 
 axiosInstance.interceptors.response.use(
-    (response)=>{
-        console.log("Response data:",response.data)
-        return response
-    },
-    (error)=>{
-        console.log("response error:",error)
-    }
-)
+  (response) => {
+    console.log("✅ Response data:", response.data);
+    return response;
+  },
+  (error) => {
+    console.error("❌ Response error:", error);
+    return Promise.reject(error); 
+  }
+);
+
 export default axiosInstance
