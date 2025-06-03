@@ -16,7 +16,7 @@ const property = async (req, res, next) => {
       amenities,
       listingType,
       rentAmount,
-      status,
+      status
     } = propertyData;
 
     const ownerId = req.user._id;
@@ -47,7 +47,7 @@ const property = async (req, res, next) => {
       description,
       images,
       amenities,
-      status,
+      status:"Pending",
       ownerId,
       ownerType: req.user.googleId ? "GoogleUser" : "User",
       listingType,
