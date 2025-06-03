@@ -138,7 +138,7 @@ const Login = () => {
         <div className="flex justify-center items-center h-screen bg-gray-100">
           <div className="bg-white p-8 shadow-md rounded-lg w-full max-w-sm border border-green-400">
             <h2 className="text-2xl font-bold text-center mb-6 capitalize">
-              Login as {role === "owner" ? "Property Owner" : "User"}
+              Login as {role === "owner" ? "Property Owner" : "Buyer"}
             </h2>
 
             <Form
@@ -203,7 +203,7 @@ const Login = () => {
                   to={`/register/${role}`}
                   className="text-green-600 hover:underline ml-1"
                 >
-                  Register as {role === "owner" ? "Owner" : "User"}
+                  Register as {role === "owner" ? "Owner" : "Buyer"}
                 </NavLink>
               </div>
             </Form>

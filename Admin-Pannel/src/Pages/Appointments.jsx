@@ -27,8 +27,6 @@ const Appointments = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  // Modal state for editing appointment status
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [form] = Form.useForm();
@@ -106,8 +104,7 @@ const Appointments = () => {
     const response = await axiosInstance.put(
       `${baseURL}/api/appointment/update/${editingAppointment._id}`,
       { 
-        status: values.status // Make sure this matches backend expectations
-        // Add other required fields if needed
+        status: values.status 
       },
       {
         headers: { 

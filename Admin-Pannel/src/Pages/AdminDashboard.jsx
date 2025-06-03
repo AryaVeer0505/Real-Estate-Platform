@@ -19,7 +19,7 @@ const AdminDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [users, setUsers] = useState([]);
   const [properties, setProperties] = useState([]);
-  const [appointments, setAppointments] = useState([]); // New state for appointments
+  const [appointments, setAppointments] = useState([]); 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

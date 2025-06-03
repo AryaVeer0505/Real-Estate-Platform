@@ -86,7 +86,7 @@ const responseGoogle = async (authResult) => {
         <div className="flex items-center justify-center h-screen bg-gray-100">
           <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-green-400">
             <h2 className="text-2xl font-semibold text-center mb-4 capitalize">
-              Register as {role === "owner" ? "Property Owner" : "User"}
+              Register as {role === "owner" ? "Property Owner" : "Buyer"}
             </h2>
 
             <Form name="register" onFinish={onFinish}>
