@@ -1,7 +1,7 @@
 import axios from 'axios'
 const axiosInstance=axios.create({
     baseURL:"https://real-estate-platform-backend.onrender.com",
-    timeout:10000,
+    timeout:1000,
 })
 
 // Request interceptors 
