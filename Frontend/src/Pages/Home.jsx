@@ -41,8 +41,9 @@ const Home = () => {
                 "status:",
                 property.status
               );
-              return (
-                property.status && property.status.toLowerCase() !== "pending"
+               return (
+                property.status && !["pending", "sold"].includes(property.status.toLowerCase())
+
               );
             }
           );
