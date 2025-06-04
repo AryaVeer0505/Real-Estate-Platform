@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from "react";
-import {
-  Layout,
-  Breadcrumb,
-  message,
-  Card,
-  Row,
-  Col,
-} from "antd";
+import { Layout, Breadcrumb, message, Card, Row, Col } from "antd";
 import axiosInstance from "../../axiosInnstance";
 import Sidebar from "../Components/Sidebar";
-import Header from "../Components/Header"; 
+import Header from "../Components/Header";
 import { baseURL } from "../../config";
 import Loader from "../Components/Loader.jsx";
 
@@ -19,18 +12,23 @@ const AdminDashboard = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [users, setUsers] = useState([]);
   const [properties, setProperties] = useState([]);
-  const [appointments, setAppointments] = useState([]); 
+  const [appointments, setAppointments] = useState([]);
+  const [orders, setOrders] = useState([]); 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const usersRes = await axiosInstance.get(`${baseURL}/api/auth/getUsers`);
+        const usersRes = await axiosInstance.get(
+          `${baseURL}/api/auth/getUsers`
+        );
         console.log("Users Data:", usersRes.data);
         setUsers(usersRes.data);
 
-        const propertiesRes = await axiosInstance.get(`${baseURL}/api/property/allProperties`);
+        const propertiesRes = await axiosInstance.get(
+          `${baseURL}/api/property/allProperties`
+        );
         console.log("Properties Data:", propertiesRes.data);
         if (Array.isArray(propertiesRes.data)) {
           setProperties(propertiesRes.data);
@@ -40,7 +38,9 @@ const AdminDashboard = () => {
           message.error("Failed to load properties data.");
         }
 
-        const appointmentsRes = await axiosInstance.get(`${baseURL}/api/appointment/allAppointments`);
+        const appointmentsRes = await axiosInstance.get(
+          `${baseURL}/api/appointment/allAppointments`
+        );
         console.log("Appointments Data:", appointmentsRes.data);
         if (Array.isArray(appointmentsRes.data.appointments)) {
           setAppointments(appointmentsRes.data.appointments);
@@ -48,11 +48,21 @@ const AdminDashboard = () => {
           message.error("Failed to load appointments data.");
         }
 
+       
+        const ordersRes = await axiosInstance.get(
+          `${baseURL}/api/order/allOrders`
+        );
+        console.log("Orders Data:", ordersRes.data);
+        if (Array.isArray(ordersRes.data.orders)) {
+          setOrders(ordersRes.data.orders);
+        } else {
+          message.error("Failed to load orders data.");
+        }
       } catch (error) {
         console.error("Failed to fetch data", error);
         message.error("Failed to load data.");
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
@@ -62,7 +72,7 @@ const AdminDashboard = () => {
   return (
     <div>
       {loading ? (
-        <Loader /> 
+        <Loader />
       ) : (
         <Layout style={{ minHeight: "100vh" }}>
           <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
@@ -75,25 +85,40 @@ const AdminDashboard = () => {
               </Breadcrumb>
 
               <div className="p-6 bg-white rounded shadow">
-                <Row gutter={16}>
-                  <Col span={8}>
+                <Row gutter={16} style={{ marginBottom: 16 }}>
+                  <Col span={12}>
                     <Card title="Total Users" bordered={false}>
                       {users.length > 0 ? users.length : "No users available"}
                     </Card>
                   </Col>
-                  <Col span={8}>
+                  <Col span={12}>
                     <Card title="Properties" bordered={false}>
-                      {properties.length > 0 ? properties.length : "No properties available"}
+                      {properties.length > 0
+                        ? properties.length
+                        : "No properties available"}
                     </Card>
                   </Col>
-                  <Col span={8}>
+                </Row>
+
+                <Row gutter={16}>
+                  <Col span={12}>
                     <Card title="Appointments" bordered={false}>
-                      {appointments.length > 0 ? appointments.length : "No appointments available"}
+                      {appointments.length > 0
+                        ? appointments.length
+                        : "No appointments available"}
+                    </Card>
+                  </Col>
+                  <Col span={12}>
+                    <Card title="Orders" bordered={false}>
+                      {orders.length > 0
+                        ? orders.length
+                        : "No orders available"}
                     </Card>
                   </Col>
                 </Row>
               </div>
             </Content>
+
             <Footer className="text-center">Admin Dashboard ©2025</Footer>
           </Layout>
         </Layout>

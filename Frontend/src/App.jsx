@@ -15,11 +15,14 @@ import OwnerDashboard from './Pages/OwnerDashboard.jsx';
 import Cart from './Pages/Cart.jsx';
 import Favorites from './Pages/Favorites.jsx';
 import MyBookings from './Pages/MyBookings.jsx';
-
+import MyOrders from './Pages/MyOrders.jsx';
+// AIzaSyBaSlPIju7RzKzTZ4Mp4s8Ha56-cd1isu4
+// AIzaSyCPICl1RXlH50GJSbzbCbF211N8RZGJB4s 
 
 const App = () => {
   const location = useLocation();
   const isNotFound = location.pathname === '*' || location.pathname === '/404';
+ 
 
   return (
     <>
@@ -34,6 +37,7 @@ const App = () => {
         <Route path="/addProperty" element={<AddProperty />} />
         <Route path="/forgotPassword/:role" element={<ForgotPassword />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/myOrders" element={<MyOrders />} />
         <Route path="/myBookings" element={<MyBookings />} />
         <Route path="/favorites" element={<Favorites />} />
         <Route path="/login/:role" element={<Login />} />

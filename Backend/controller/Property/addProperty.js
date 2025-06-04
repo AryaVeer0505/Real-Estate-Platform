@@ -16,7 +16,7 @@ const property = async (req, res, next) => {
       amenities,
       listingType,
       rentAmount,
-      status
+      status = "Pending",
     } = propertyData;
 
     const ownerId = req.user._id;

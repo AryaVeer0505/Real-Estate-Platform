@@ -1,6 +1,13 @@
-const User = require("../../models/User.model.js");
-const { registrationValidation } = require("../../services/validation_schema.js");
+const User = require("../../models/User.model");
+const { registrationValidation } = require("../../services/validation_schema");
 const bcrypt = require("bcrypt");
+
+// const userTypeMap = {
+//   user: "User",
+//   owner: "User", // Same model
+//   admin: "User", // Or separate model if you have one
+// };
+
 
 const register = async (req, res, next) => {
   try {
@@ -56,11 +63,14 @@ const register = async (req, res, next) => {
     await newUser.save();
     console.log("User registered successfully");
 
+  //  const userType = userTypeMap[newUser.role] || "User";
+
 const payload = {
   id: newUser._id,
   username: newUser.username,
   email: newUser.email,
   role: newUser.role,
+  // userType,
 };
 
 

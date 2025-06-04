@@ -27,6 +27,7 @@ const Appointments = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(false);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [form] = Form.useForm();

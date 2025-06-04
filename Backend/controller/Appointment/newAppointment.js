@@ -6,19 +6,22 @@ const GoogleUser = require("../../models/google.models.js");
 const newAppointment = async (req, res) => {
   const { propertyId, appointmentDate } = req.body;
   const userId = req.user?._id;
-  const loggedUserType = req.user?.userType || (req.user?.googleId ? "GoogleUser" : "User");
+  
+  // Determine user type based on authentication method
+  const loggedUserType = req.user?.googleId ? "GoogleUser" : "User";
 
   try {
-
+    // Validate required fields
     if (!propertyId || !appointmentDate || !userId) {
       return res.status(400).json({ 
         success: false,
-        message: "Missing required fields." 
+        message: "Missing required fields: propertyId, appointmentDate, or user authentication" 
       });
     }
 
+    // Get property with owner information
     const property = await Property.findById(propertyId)
-      .select('ownerId ownerType')
+      .select('ownerId ownerType title')
       .lean();
       
     if (!property) {
@@ -28,33 +31,47 @@ const newAppointment = async (req, res) => {
       });
     }
 
-const isOwner = (
-  property.ownerId && 
-  userId && 
-  property.ownerId.toString() === userId.toString() && 
-  property.ownerType === loggedUserType
-);
+    // Enhanced owner check
+    const isOwner = (
+      property.ownerId && 
+      userId && 
+      property.ownerId.toString() === userId.toString() && 
+      property.ownerType === loggedUserType
+    );
 
-if (isOwner) {
-  return res.status(403).json({
-    success: false,
-    message: "Property owners cannot book appointments for their own properties.",
-    code: "OWNER_BOOKING_ATTEMPT" 
-  });
-}
+    if (isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "Property owners cannot book appointments for their own properties.",
+        code: "OWNER_BOOKING_ATTEMPT",
+        propertyTitle: property.title // Provide more context
+      });
+    }
 
-    const appointmentDay = new Date(appointmentDate);
-    appointmentDay.setUTCHours(0, 0, 0, 0);
+    // Validate appointment date (ensure it's in the future)
+    const now = new Date();
+    const appointmentTime = new Date(appointmentDate);
+    
+    if (appointmentTime <= now) {
+      return res.status(400).json({
+        success: false,
+        message: "Appointment date must be in the future."
+      });
+    }
 
-    const nextDay = new Date(appointmentDay);
-    nextDay.setDate(appointmentDay.getDate() + 1);
+    // Check for existing appointment (same property + same day)
+    const appointmentDayStart = new Date(appointmentDate);
+    appointmentDayStart.setUTCHours(0, 0, 0, 0);
+
+    const appointmentDayEnd = new Date(appointmentDayStart);
+    appointmentDayEnd.setDate(appointmentDayStart.getDate() + 1);
 
     const existingAppointment = await Appointment.findOne({
       propertyId,
       userId,
       appointmentDate: {
-        $gte: appointmentDay,
-        $lt: nextDay,
+        $gte: appointmentDayStart,
+        $lt: appointmentDayEnd,
       },
     });
 
@@ -62,35 +79,44 @@ if (isOwner) {
       return res.status(400).json({
         success: false,
         message: "You already have an appointment for this property on the selected date.",
+        existingAppointmentId: existingAppointment._id
       });
     }
 
+    // Create new appointment
     const appointment = new Appointment({
       propertyId,
       userId,
-      appointmentDate,
       userType: loggedUserType,
-      status: 'pending' 
+      appointmentDate,
+      status: 'pending',
+      createdAt: new Date()
     });
 
     await appointment.save();
 
+    // Get user details for response
     let user;
     if (loggedUserType === 'User') {
-      user = await User.findById(userId).select('name email');
+      user = await User.findById(userId).select('username email');
     } else {
       user = await GoogleUser.findById(userId).select('name email');
     }
 
+    // Successful response
     res.status(201).json({ 
       success: true,
       message: "Appointment booked successfully.",
       appointment: {
         id: appointment._id,
-        date: appointmentDate,
-        property: propertyId,
+        date: appointment.appointmentDate,
+        status: appointment.status,
+        property: {
+          id: propertyId,
+          title: property.title
+        },
         user: {
-          name: user?.name || 'Unknown',
+          name: user?.username || user?.name || 'Unknown',
           email: user?.email || 'No email'
         }
       }
@@ -101,7 +127,10 @@ if (isOwner) {
     res.status(500).json({ 
       success: false,
       message: "Error booking appointment.",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        stack: error.stack
+      } : undefined
     });
   }
 };

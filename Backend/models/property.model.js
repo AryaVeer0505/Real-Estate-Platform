@@ -74,7 +74,7 @@ const propertySchema = new Schema(
     },
     ownerType: {
       type: String,
-      enum: ["User", "GoogleUser"],
+      enum: ["User", "GoogleUser"], // ✅ Correct
     },
     listingType: {
       type: String,

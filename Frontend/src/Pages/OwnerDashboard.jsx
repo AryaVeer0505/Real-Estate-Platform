@@ -22,6 +22,7 @@ import {
   UploadOutlined,
   HomeOutlined,
   CalendarOutlined,
+  ShoppingCartOutlined, 
 } from "@ant-design/icons";
 import { baseURL } from "../../config.js";
 import axiosInstance from "../../axiosInnstance.js";
@@ -38,29 +39,39 @@ const OwnerDashboard = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
+  
   const [properties, setProperties] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [editingProperty, setEditingProperty] = useState(null);
-  const [appointments, setAppointments] = useState([]);
-  const [isAppointmentModalVisible, setIsAppointmentModalVisible] =
-    useState(false);
-  const [editingAppointment, setEditingAppointment] = useState(null);
   const [listingType, setListingType] = useState("Buy");
 
+
+  const [appointments, setAppointments] = useState([]);
+  const [isAppointmentModalVisible, setIsAppointmentModalVisible] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
+
+
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
+ 
   const fetchProperties = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axiosInstance.get(
-        `${baseURL}/api/property/allProperties`,
+        `${baseURL}/api/property/allProperties`, 
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setProperties(response.data.properties);
+      setProperties(response.data.properties || []);
     } catch (error) {
       message.error("Failed to fetch properties");
     }
   };
+
+
   const fetchAppointments = async () => {
     try {
       setLoading(true);
@@ -72,7 +83,6 @@ const OwnerDashboard = () => {
         }
       );
 
-      // Format appointments with separate date and time
       const formattedAppointments =
         response.data.appointments?.map((appointment) => ({
           ...appointment,
@@ -81,18 +91,41 @@ const OwnerDashboard = () => {
         })) || [];
 
       setAppointments(formattedAppointments);
-      setLoading(false);
     } catch (error) {
       console.error("Failed to fetch appointments:", error);
       message.error("Failed to fetch appointments");
+    } finally {
       setLoading(false);
     }
   };
+
+  
+  const fetchOwnerOrders = async () => {
+    try {
+      setOrdersLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axiosInstance.get(
+        `${baseURL}/api/order/ownerOrders`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setOrders(response.data.orders || []);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      message.error("Failed to fetch orders");
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "properties") {
       fetchProperties();
     } else if (activeTab === "appointments") {
       fetchAppointments();
+    } else if (activeTab === "orders") {
+      fetchOwnerOrders();
     }
   }, [activeTab]);
 
@@ -101,10 +134,6 @@ const OwnerDashboard = () => {
     setSelectedFiles([]);
     form.resetFields();
     setIsModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
   };
 
   const handleAddOrUpdateProperty = async (values) => {
@@ -116,7 +145,6 @@ const OwnerDashboard = () => {
 
     try {
       let uploadedFileUrls = [];
-
       if (selectedFiles.length > 0) {
         const formData = new FormData();
         selectedFiles.forEach((file) => {
@@ -134,22 +162,23 @@ const OwnerDashboard = () => {
           message.error("File upload failed");
           return;
         }
-
         uploadedFileUrls = fileUrls;
         values.images = uploadedFileUrls;
       } else if (editingProperty) {
+     
         values.images = editingProperty.images;
       }
 
       let response;
-
       if (editingProperty) {
+        
         response = await axiosInstance.put(
           `${baseURL}/api/property/updateProperty/${editingProperty._id}`,
           values,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
+        // Add new property
         response = await axiosInstance.post(
           `${baseURL}/api/property/addProperty`,
           values,
@@ -158,37 +187,29 @@ const OwnerDashboard = () => {
       }
 
       if (response.data.success) {
-        toast.success(
-          editingProperty ? "Property updated!" : "Property added!"
-        );
+        toast.success(editingProperty ? "Property updated!" : "Property added!");
         setIsModalVisible(false);
         form.resetFields();
         setSelectedFiles([]);
         setEditingProperty(null);
         fetchProperties();
       } else {
-        if (
-          response.data.message ===
-          "Please add a new property, this property is already listed"
-        ) {
-          toast.error(response.data.message);
-        } else {
-          toast.error(response.data.message);
-        }
+        toast.error(response.data.message);
       }
     } catch (error) {
       toast.error(error?.response?.data?.message || "An error occurred");
     }
   };
 
-  const handleEdit = (record) => {
+  const handleEditProperty = (record) => {
     setEditingProperty(record);
+ 
     form.setFieldsValue(record);
     setListingType(record.listingType || "Buy");
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteProperty = async (id) => {
     const token = localStorage.getItem("token");
     try {
       const response = await axiosInstance.delete(
@@ -212,13 +233,15 @@ const OwnerDashboard = () => {
     setSelectedFiles(fileList);
   };
 
-  const openEditModal = (record) => {
+  // === APPOINTMENTS: Edit / Delete ===
+
+  const openAppointmentEditModal = (record) => {
     setEditingAppointment(record);
     form.setFieldsValue({ status: record.status });
     setIsAppointmentModalVisible(true);
   };
 
-  const handleUpdateStatus = async (values) => {
+  const handleUpdateAppointmentStatus = async (values) => {
     const token = localStorage.getItem("token");
     try {
       const response = await axiosInstance.put(
@@ -244,7 +267,7 @@ const OwnerDashboard = () => {
   const handleDeleteAppointment = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      setLoading(true); 
+      setLoading(true);
       const response = await axiosInstance.delete(
         `${baseURL}/api/appointment/delete/${id}`,
         {
@@ -257,7 +280,7 @@ const OwnerDashboard = () => {
 
       if (response.data.success) {
         message.success("Appointment deleted successfully");
-        await fetchAppointments(); 
+        await fetchAppointments();
       } else {
         message.error(response.data.message || "Failed to delete appointment");
       }
@@ -272,7 +295,8 @@ const OwnerDashboard = () => {
     }
   };
 
-  const columns = [
+
+  const columnsProperties = [
     {
       title: "Image",
       dataIndex: "images",
@@ -295,12 +319,7 @@ const OwnerDashboard = () => {
       title: "Status",
       dataIndex: "status",
       render: (status) => {
-        let color =
-          status === "approved"
-            ? "green"
-            : status === "pending"
-            ? "orange"
-            : "red";
+        let color = status === "approved" ? "green" : status === "pending" ? "orange" : "red";
         return <Tag color={color}>{status?.toUpperCase()}</Tag>;
       },
     },
@@ -308,15 +327,110 @@ const OwnerDashboard = () => {
       title: "Actions",
       render: (_, record) => (
         <>
-          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+          <Button icon={<EditOutlined />} onClick={() => handleEditProperty(record)} />
           <Popconfirm
             title="Are you sure to delete this property?"
-            onConfirm={() => handleDelete(record._id)}
+            onConfirm={() => handleDeleteProperty(record._id)}
           >
             <Button icon={<DeleteOutlined />} danger className="ml-2" />
           </Popconfirm>
         </>
       ),
+    },
+  ];
+
+  const columnsAppointments = [
+    {
+      title: "Property",
+      dataIndex: "propertyId",
+      render: (property) => property?.title || "N/A",
+    },
+    {
+      title: "User",
+      dataIndex: "userInfo",
+      render: (user) => user?.username || user?.name || "N/A",
+    },
+    {
+      title: "Email",
+      dataIndex: "userInfo",
+      render: (user) => user?.email || "N/A",
+    },
+    {
+      title: "Date",
+      dataIndex: "appointmentDate",
+      render: (date) => new Date(date).toLocaleDateString(),
+    },
+    {
+      title: "Time",
+      dataIndex: "time",
+      key: "time",
+      sorter: (a, b) =>
+        dayjs(a.time, "HH:mm").unix() - dayjs(b.time, "HH:mm").unix(),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (status) => <Tag color={status === "confirmed" ? "green" : "orange"}>{status?.toUpperCase()}</Tag>,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <>
+          <Button icon={<EditOutlined />} className="mr-2" onClick={() => openAppointmentEditModal(record)} />
+          <Popconfirm
+            title="Are you sure to delete this appointment?"
+            onConfirm={() => handleDeleteAppointment(record._id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button icon={<DeleteOutlined />} danger />
+          </Popconfirm>
+        </>
+      ),
+    },
+  ];
+
+
+  const columnsOrders = [
+    {
+      title: "Property Image",
+      dataIndex: "propertyId",
+      render: (prop) =>
+        prop?.images?.[0] ? (
+          <img
+            src={`${baseURL}${prop.images[0]}`}
+            alt={prop.title}
+            style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }}
+          />
+        ) : (
+          <span>No Image</span>
+        ),
+    },
+    {
+      title: "Property Title",
+      dataIndex: "propertyId",
+      render: (prop) => prop?.title || "N/A",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      render: (price) => `₹${price}`,
+    },
+    {
+      title: "Buyer",
+      dataIndex: "buyer",
+      render: (buyer) => buyer?.username || buyer?.name || "N/A",
+    },
+    {
+      title: "Buyer Email",
+      dataIndex: "buyer",
+      render: (buyer) => buyer?.email || "N/A",
+    },
+    {
+      title: "Date Sold",
+      dataIndex: "createdAt",
+      render: (dt) => dayjs(dt).format("DD MMM YYYY, hh:mm A"),
     },
   ];
 
@@ -331,7 +445,7 @@ const OwnerDashboard = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["properties"]}
+          selectedKeys={[activeTab]}
           onClick={({ key }) => setActiveTab(key)}
         >
           <Menu.Item key="properties" icon={<HomeOutlined />}>
@@ -340,12 +454,16 @@ const OwnerDashboard = () => {
           <Menu.Item key="appointments" icon={<CalendarOutlined />}>
             Scheduled Appointments
           </Menu.Item>
+          <Menu.Item key="orders" icon={<ShoppingCartOutlined />}>
+            Orders
+          </Menu.Item>
         </Menu>
       </Sider>
+
       <Layout>
         <Content style={{ margin: "16px" }}>
           {activeTab === "properties" && (
-            <div className="bg-white p-6 rounded shadow">
+            <div className="bg-white p-6 rounded-lg shadow">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                   My Properties
@@ -358,12 +476,17 @@ const OwnerDashboard = () => {
                   Add Property
                 </Button>
               </div>
-              <Table columns={columns} dataSource={properties} rowKey="_id" />
+              <Table
+                columns={columnsProperties}
+                dataSource={properties}
+                rowKey="_id"
+                pagination={{ pageSize: 8 }}
+              />
             </div>
           )}
 
           {activeTab === "appointments" && (
-            <div className="bg-white p-6 rounded shadow">
+            <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
                 Scheduled Appointments
               </h2>
@@ -371,73 +494,33 @@ const OwnerDashboard = () => {
                 dataSource={appointments}
                 rowKey="_id"
                 loading={loading}
-                columns={[
-                  {
-                    title: "Property",
-                    dataIndex: "propertyId",
-                    render: (property) => property?.title || "N/A",
-                  },
-                  {
-                    title: "User",
-                    dataIndex: "userInfo",
-                    render: (user) => user?.username || user?.name || "N/A",
-                  },
-                  {
-                    title: "Email",
-                    dataIndex: "userInfo",
-                    render: (user) => user?.email || "N/A",
-                  },
-
-                  {
-                    title: "Date",
-                    dataIndex: "appointmentDate",
-                    render: (date) => new Date(date).toLocaleDateString(),
-                  },
-                  {
-                    title: "Time",
-                    dataIndex: "time",
-                    key: "time",
-                    sorter: (a, b) =>
-                      dayjs(a.time, "HH:mm").unix() -
-                      dayjs(b.time, "HH:mm").unix(),
-                  },
-
-                  {
-                    title: "Status",
-                    dataIndex: "status",
-                    render: (status) => (
-                      <Tag color={status === "confirmed" ? "green" : "orange"}>
-                        {status?.toUpperCase()}
-                      </Tag>
-                    ),
-                  },
-                  {
-                    title: "Actions",
-                    key: "actions",
-                    render: (_, record) => (
-                      <>
-                        <Button
-                          icon={<EditOutlined />}
-                          className="mr-2"
-                          onClick={() => openEditModal(record)}
-                        />
-                        <Popconfirm
-                          title="Are you sure to delete this appointment?"
-                          onConfirm={() => handleDeleteAppointment(record._id)}
-                          okText="Yes"
-                          cancelText="No"
-                        >
-                          <Button icon={<DeleteOutlined />} danger />
-                        </Popconfirm>
-                      </>
-                    ),
-                  },
-                ]}
+                columns={columnsAppointments}
+                pagination={{ pageSize: 8 }}
               />
+            </div>
+          )}
+
+          {activeTab === "orders" && (
+            <div className="bg-white p-6 rounded-lg shadow">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Orders</h2>
+
+              {ordersLoading ? (
+                <Loader />
+              ) : orders.length === 0 ? (
+                <p className="text-gray-600 text-center">No orders found.</p>
+              ) : (
+                <Table
+                  dataSource={orders}
+                  rowKey={(record) => record._id + record.propertyId._id}
+                  columns={columnsOrders}
+                  pagination={{ pageSize: 8 }}
+                />
+              )}
             </div>
           )}
         </Content>
       </Layout>
+
 
       <Modal
         title={editingProperty ? "Edit Property" : "Add New Property"}
@@ -451,7 +534,6 @@ const OwnerDashboard = () => {
         }}
         footer={null}
       >
-        
         <div className="flex justify-center gap-4 mb-4">
           <Button
             type={listingType === "Buy" ? "primary" : "default"}
@@ -492,9 +574,7 @@ const OwnerDashboard = () => {
               <Form.Item
                 name="location"
                 label="Location"
-                rules={[
-                  { required: true, message: "Please input the location!" },
-                ]}
+                rules={[{ required: true, message: "Please input the location!" }]}
               >
                 <Input />
               </Form.Item>
@@ -505,12 +585,8 @@ const OwnerDashboard = () => {
             <Col span={12}>
               <Form.Item
                 name={listingType === "Rent" ? "rentAmount" : "price"}
-                label={
-                  listingType === "Rent" ? "Amount per Month (₹)" : "Price (₹)"
-                }
-                rules={[
-                  { required: true, message: "Please input the amount!" },
-                ]}
+                label={listingType === "Rent" ? "Amount per Month (₹)" : "Price (₹)"}
+                rules={[{ required: true, message: "Please input the amount!" }]}
               >
                 <Input type="number" />
               </Form.Item>
@@ -586,12 +662,7 @@ const OwnerDashboard = () => {
           <Form.Item
             name="amenities"
             label="Amenities"
-            rules={[
-              {
-                required: true,
-                message: "Please select at least one amenity!",
-              },
-            ]}
+            rules={[{ required: true, message: "Please select at least one amenity!" }]}
           >
             <Select mode="multiple" placeholder="Select amenities" allowClear>
               <Option value="parking">Parking</Option>
@@ -611,13 +682,23 @@ const OwnerDashboard = () => {
               <Option value="beds">Beds</Option>
             </Select>
           </Form.Item>
+           <Form.Item
+                          name="status"
+                          label="Status"
+                          rules={[
+                            { required: true, message: "Please select the status!" },
+                          ]}
+                        >
+                          <Select placeholder="Select status">
+                            <Option value="Sold">Sold</Option>
+                            <Option value="Pending">Pending</Option>
+                          </Select>
+                        </Form.Item>
 
           <Form.Item
             name="description"
             label="Description"
-            rules={[
-              { required: true, message: "Please input the description!" },
-            ]}
+            rules={[{ required: true, message: "Please input the description!" }]}
           >
             <Input.TextArea rows={3} />
           </Form.Item>
@@ -644,7 +725,7 @@ const OwnerDashboard = () => {
         <Form
           layout="vertical"
           form={form}
-          onFinish={handleUpdateStatus}
+          onFinish={handleUpdateAppointmentStatus}
           initialValues={{ status: editingAppointment?.status }}
         >
           <Form.Item
@@ -674,6 +755,7 @@ const OwnerDashboard = () => {
           </Form.Item>
         </Form>
       </Modal>
+
       <ToastContainer />
     </Layout>
   );

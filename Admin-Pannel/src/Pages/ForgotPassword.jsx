@@ -23,7 +23,7 @@ const ForgotPassword = () => {
       setLoading(true);
       const res = await axios.post(`${baseURL}/api/password/forgotPassword`, {
         email,
-       
+      
         newPassword,
       });
       setLoading(false);
@@ -63,13 +63,6 @@ const ForgotPassword = () => {
           <Input />
         </Form.Item>
 
-        <Form.Item
-          label="Old Password"
-          name="oldPassword"
-          rules={[{ required: true, message: 'Please enter your old password.' }]}
-        >
-          <Input.Password />
-        </Form.Item>
 
         <Form.Item
           label="New Password"

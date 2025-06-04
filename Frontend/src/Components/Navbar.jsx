@@ -13,24 +13,30 @@ const LoginDropdown = () => (
 const UserDropdown = ({ onLogout, userRole }) => (
   <div className="absolute right-0 mt-2 bg-white text-black rounded shadow-md w-48 z-50">
     {userRole === 'owner' && (
-      <NavLink to="/ownerDashboard" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <NavLink to="/ownerDashboard" className="px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
         <DashboardOutlined /> Dashboard
       </NavLink>
     )}
-   
-    <NavLink to="/favorites" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+
+    <NavLink to="/favorites" className="px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <HeartOutlined /> Favorites
     </NavLink>
 
-    <NavLink to="/myBookings" className=" px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+    <NavLink to="/myBookings" className="px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <ShoppingCartOutlined /> My Appointments
     </NavLink>
-  
-    <button onClick={onLogout} className=" w-full text-left px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+
+    {/* New "My Orders" Link */}
+    <NavLink to="/myOrders" className="px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
+      <DashboardOutlined /> My Orders
+    </NavLink>
+
+    <button onClick={onLogout} className="w-full text-left px-4 py-2 hover:bg-gray-200 font-medium flex items-center gap-2">
       <LogoutOutlined /> Logout
     </button>
   </div>
 );
+
 
 
 const Navbar = () => {

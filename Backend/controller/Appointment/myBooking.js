@@ -10,7 +10,7 @@ const myBooking = async (req, res) => {
 
     const bookings = await Appointment.find({
       userId,
-      userType,
+      
     }).populate("propertyId");
 
     console.log("Found bookings:", bookings);

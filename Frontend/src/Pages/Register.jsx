@@ -6,7 +6,6 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import Loader from "../Components/Loader";
 import { useGoogleLogin } from '@react-oauth/google';
-import { baseURL } from "../../config.js";
 
 const Register = () => {
   const [loading, setLoading] = useState(false);
@@ -20,7 +19,7 @@ const Register = () => {
     setLoading(true);
     try {
       const payload = { ...values, role };
-      const response = await axios.post(`${baseURL}/api/auth/register`, payload);
+      const response = await axios.post("http://localhost:5001/api/auth/register", payload);
       showSuccessToast("Registration Successful! Redirecting to login...");
       setTimeout(() => navigate(`/login/${role}`), 2000);
     } catch (error) {
@@ -35,7 +34,7 @@ const responseGoogle = async (authResult) => {
       // Pass the role parameter along with the code
       const payload = { code: authResult.code, role };
 
-      const res = await axios.post(`${baseURL}/api/auth/google`, payload);
+      const res = await axios.post("http://localhost:5001/api/auth/google", payload);
       const { user, isNewUser } = res.data;
 
       const { email, name, image, token, role: userRole } = user;
@@ -49,7 +48,7 @@ const responseGoogle = async (authResult) => {
 
       localStorage.setItem("user", JSON.stringify(userInfo));
       localStorage.setItem("token", token);
-      localStorage.setItem("userType", userRole); // Update the userType key
+      localStorage.setItem("userType", userRole); 
 
       window.dispatchEvent(new Event("loginStatusChanged"));
 

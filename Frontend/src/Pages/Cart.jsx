@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { baseURL } from "../../config";
 import axiosInstance from "../../axiosInnstance.js";
 import { message } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
-import { NavLink } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(
+  "pk_test_51RKeUDE1gw3WghtiND8c8VMkTZv75Q51rsTSlP6r8xrRRzUz0RWJROJQjzSEepHQYef7cL0TY7B7a2hjlA52aZv7009U3117WR"
+);
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
@@ -75,8 +79,55 @@ const Cart = () => {
   };
 
   const getTotal = () => {
-    return cart.reduce((sum, item) => sum + (item.property?.price || 0), 0);
-  };
+  return cart.reduce(
+    (sum, item) => sum + (item.property?.price || 0) * (item.quantity || 1),
+    0
+  );
+};
+
+const handlePlaceOrder = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to place an order.");
+      return;
+    }
+
+    const cleanedCart = cart
+      .filter((item) => item.property)
+      .map((item) => ({
+        propertyId: item.property._id,
+        title: item.property.title,
+        price: item.property.price,
+        image: item.property.images?.[0] ? `${baseURL}${item.property.images[0]}` : "",
+        quantity: item.quantity || 1,
+      }));
+
+    const response = await axiosInstance.post(
+      `${baseURL}/api/order/stripe`,
+      { cart: cleanedCart },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      setCart([]); // Clear cart here before redirect
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({
+        sessionId: response.data.sessionId,
+      });
+    }
+  } catch (error) {
+    console.error("Stripe checkout error:", error);
+    toast.error("Failed to initiate checkout.");
+  }
+};
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -88,6 +139,23 @@ const Cart = () => {
         <div className="text-center">Loading...</div>
       ) : cart.length > 0 ? (
         <div className="overflow-x-auto">
+          <div className="mt-6 bg-white rounded-lg shadow p-6 flex flex-col sm:flex-row justify-between items-center">
+            <div className="text-lg font-semibold text-gray-700">
+              Total Amount:{" "}
+              <span className="text-green-600 font-bold">₹{getTotal()}</span>
+            </div>
+            <button
+              onClick={handlePlaceOrder}
+              disabled={cart.length === 0}
+              className={`mt-4 sm:mt-0 px-6 py-2 rounded-lg transition ${
+                cart.length === 0
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-500 hover:bg-green-600 text-white"
+              }`}
+            >
+              Buy Property
+            </button>
+          </div>
           <table className="min-w-full bg-white rounded-lg shadow">
             <thead>
               <tr className="bg-gray-200 text-gray-700">
@@ -139,20 +207,6 @@ const Cart = () => {
               })}
             </tbody>
           </table>
-
-          <div className="mt-6 bg-white rounded-lg shadow p-6 flex flex-col sm:flex-row justify-between items-center">
-            <div className="text-lg font-semibold text-gray-700">
-              
-              Total Price:{" "}
-              <span className="text-green-600 font-bold">₹{getTotal()}</span>
-            </div>
-            <NavLink
-              to="/checkout"
-              className="mt-4 sm:mt-0 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition"
-            >
-              Proceed to Checkout
-            </NavLink>
-          </div>
         </div>
       ) : (
         <p className="text-center text-gray-600 text-lg">Your cart is empty.</p>

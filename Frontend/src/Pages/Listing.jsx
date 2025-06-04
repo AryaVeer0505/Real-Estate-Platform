@@ -30,6 +30,10 @@ const Listing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Declare userId at the top level
+  const userData = JSON.parse(localStorage.getItem("user"));
+  const userId = userData?._id;
+
   const updateLocalStorageFavorites = (updatedFavorites) => {
     localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
   };
@@ -141,31 +145,40 @@ const Listing = () => {
     }
   };
 
-  const handleAddToCart = async (propertyId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("Please login to add items to cart");
-        return;
-      }
-
-      await axiosInstance.post(
-        "/api/cart/add",
-        { propertyId },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      toast.success("Added to cart successfully!");
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-      toast.error("Failed to add to cart.");
+const handleAddToCart = async (propertyId) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      return;
     }
-  };
+
+    await axiosInstance.post(
+      "/api/cart/add",
+      { propertyId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    toast.success("Added to cart successfully!");
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+
+    // 👇 Extract proper backend message if available
+    const message =
+      error?.response?.data?.message || "Failed to add to cart.";
+    toast.error(message);
+  }
+};
+
 
   const filteredProperties = properties
-    .filter((property) => property.status?.toLowerCase() !== "pending")
+    .filter(
+      (property) =>
+        property.status?.toLowerCase() !== "pending" &&
+        property.status?.toLowerCase() !== "sold"
+    )
     .filter((property) => {
       const matchesSearch =
         property.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -298,12 +311,14 @@ const Listing = () => {
                       )}
                     </button>
 
-                    <button
-                      onClick={() => handleAddToCart(property._id)}
-                      className="px-2 py-1 bg-white rounded-full shadow-lg hover:bg-gray-500 hover:text-white transition"
-                    >
-                      <ShoppingCartOutlined className="text-green-500" />
-                    </button>
+                    {property.owner !== userId && (
+                      <button
+                        onClick={() => handleAddToCart(property._id)}
+                        className="px-2 py-1 bg-white rounded-full shadow-lg hover:bg-gray-500 hover:text-white transition"
+                      >
+                        <ShoppingCartOutlined className="text-green-500" />
+                      </button>
+                    )}
 
                     <NavLink
                       to={`/property/${property._id}`}
