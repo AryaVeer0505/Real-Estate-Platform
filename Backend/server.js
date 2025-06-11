@@ -7,18 +7,18 @@ const createDefaultAdmin = require("./controller/Auth/DefaultAdmin.js");
 const path = require("path");
 backend.use(express.json());
 
-// const allowedOrigins = [
-//   'https://real-estate-platform-admin.onrender.com',
-//   'https://real-estate-platform-frontend.onrender.com', 
-//   'https://real-estate-platform-frontend.vercel.app',
-//   'https://real-estate-platform-admin.vercel.app/',
-//   'http://localhost:5173' ,        
-//   'http://localhost:5174'         
-// ];
+const allowedOrigins = [
+  'https://real-estate-platform-admin.onrender.com',
+  'https://real-estate-platform-frontend.onrender.com', 
+  'https://real-estate-platform-frontend.vercel.app',
+  'https://real-estate-platform-admin.vercel.app/',
+  'http://localhost:5173' ,        
+  'http://localhost:5174'         
+];
 
 backend.use(
   cors({
-    origin: "*",
+    origin: allowedOrigins,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   })
 );
