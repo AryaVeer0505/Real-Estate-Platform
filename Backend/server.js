@@ -5,16 +5,8 @@ const backend = express();
 const cors = require("cors");
 const createDefaultAdmin = require("./controller/Auth/DefaultAdmin.js");
 const path = require("path");
-backend.use(express.json());
 
-// const allowedOrigins = [
-//   'https://real-estate-platform-admin.onrender.com',
-//   'https://real-estate-platform-frontend.onrender.com', 
-//   'https://real-estate-platform-frontend.vercel.app',
-//   'https://real-estate-platform-admin.vercel.app/',
-//   'http://localhost:5173' ,        
-//   'http://localhost:5174'         
-// ];
+backend.use(express.json());
 
 backend.use(
   cors({
@@ -22,27 +14,23 @@ backend.use(
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   })
 );
-backend.get('/', (req, res) => {
-  res.send('Welcome to the Real Estate Platform API');
+
+backend.get("/", (req, res) => {
+  res.send("Welcome to the Real Estate Platform API");
 });
 
-
 backend.use(routes);
-
 backend.use("/upload", express.static(path.join(__dirname, "./uploads")));
+let isConnected = false;
+async function connectMongo() {
+  if (isConnected) return;
+  await mongoose.connect("mongodb+srv://...your_url...");
+  console.log("Mongo Connected");
+  await createDefaultAdmin();
+  isConnected = true;
+}
 
-mongoose
-  .connect(
-    "mongodb+srv://aryaveerk123:kmFs1Il9x1GAA2su@backend-pi.5edpy.mongodb.net/test"
-  )
-  .then(async () => {
-    console.log("Mongo Connected");
-
-    await createDefaultAdmin();
-
-    const PORT = 5001;
-    backend.listen(PORT, () => {
-      console.log("Server started on port", PORT);
-    });
-  })
-  .catch((err) => console.log("Mongo Error:", err));
+module.exports = async (req, res) => {
+  await connectMongo();
+  return backend(req, res); 
+};
