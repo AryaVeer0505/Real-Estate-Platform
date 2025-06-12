@@ -1,6 +1,6 @@
 import axios from 'axios'
 const axiosInstance=axios.create({
-    baseURL: "https://real-estate-platform-backend.onrender.com",
+    baseURL:"https://real-estate-platform-backend.onrender.com",
     timeout:5000,
 })
 
